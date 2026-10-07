@@ -4,14 +4,14 @@
 > Este README es la puerta de entrada del repositorio: en la semana 1 otra pareja debe poder levantar el servidor siguiendo solo lo que dice aquí, y desde la semana 4 es la base de la integración continua.
 
 **Hilo Servidor · ULEAM · Período 2026-2**
-Aplicaciones Web II (TDI-610) · Aplicación para el Servidor Web (IS-503)
+Aplicación para el Servidor Web (IS-503)
 
 ## Integrantes
 
 | Integrante | Usuario de GitHub | Paralelo |
 | --- | --- | --- |
-| [Apellidos Nombres] | [usuario] | [Servidor Web A / Web II A / Web II B] |
-| [Apellidos Nombres] | [usuario] | [Servidor Web A / Web II A / Web II B] |
+| [Capa Vargas Renato David] | [Renato-capa] | [Servidor Web A] |
+| [Burgos Macias Adrian Omar] | [adrian03] | [Servidor Web A] |
 
 ## El producto
 
