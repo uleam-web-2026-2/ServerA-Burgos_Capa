@@ -1,18 +1,17 @@
 # Registro de decisiones de arquitectura
 
-## D1 Modelado de relación Cliente-Rutina
-**Opciones:**
-- Opción A: guardar toda la información de rutinas dentro de la entidad `Cliente` con anidación en un único objeto.
-- Opción B: separar la información en dos entidades, `Cliente` (lado uno) y `Rutina` (lado muchos), con `ClienteID` como clave foránea.
+## D1 Modelo Entrenador-Cliente-Rutina
 
-**Qué elegimos:**
-Elegimos la opción B: mantener `Cliente` y `Rutina` como entidades separadas con una relación 1 a N. Un cliente puede tener muchas rutinas, pero cada rutina pertenece a un único cliente.
+Separamos el entrenador, el cliente y la rutina en entidades relacionadas. Un entrenador administra varios clientes y cada cliente puede tener distintas rutinas a lo largo del tiempo. Esto evita guardar programas completos dentro del perfil del cliente y permite filtrar y cambiar el estado de cada plan de forma independiente.
 
-**Por qué en nuestro negocio:**
-En GymCoach, cada cliente tiene un historial de rutinas personalizadas, y cada rutina necesita su propio estado, título y trazabilidad. Separar las entidades facilita la consulta de clientes con sus rutinas, la actualización del estado de cada práctica y la gestión independiente de cada ejercicio o plan asignado.
+## D2 Objetivo y datos de salud
 
-**Qué pasaría con la otra opción:**
-Si se guardaran todas las rutinas dentro de `Cliente`, el sistema se volvería más rígido y difícil de consultar por estado, además de complicar el CRUD de rutinas como recurso independiente. Un cliente con un historial grande terminaría con estructuras anidadas más complejas y más riesgo de inconsistencia al actualizar o eliminar una rutina en particular.
+El MVP guarda un objetivo general como texto, pero no guarda diagnósticos, lesiones, peso, medidas ni historial médico. Estos datos pueden ser sensibles; se debe validar consentimiento, controles de acceso y política de retención antes de ampliar el modelo.
 
-**Conclusión:**
-La relación 1 a N es la opción más clara para un sistema de entrenamiento, porque preserva la integridad del dominio y facilita la evolución del servicio con nuevas reglas de negocio.
+## D3 Máquina de estados
+
+La rutina empieza `pendiente`, pasa a `en_progreso` cuando el cliente inicia el plan y termina `completada` cuando finaliza el ciclo. Una rutina completada no se reinicia; el entrenador crea una nueva para conservar trazabilidad.
+
+## D4 Permisos frente a implementación
+
+Entrenador y cliente tienen permisos distintos definidos en la ficha. Las rutas actuales no autentican la identidad ni aplican autorización; son una API de desarrollo, no un control de acceso.

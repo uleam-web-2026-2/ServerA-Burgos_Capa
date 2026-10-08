@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600">
+  <rect width="960" height="600" fill="#f4f7fb"/>
+  <rect x="36" y="30" width="888" height="540" rx="14" fill="#ffffff" stroke="#d6deea"/>
+  <rect x="36" y="30" width="888" height="66" rx="14" fill="#17365d"/>
+  <text x="66" y="72" fill="#ffffff" font-family="Arial,sans-serif" font-size="24" font-weight="700">GymCoach · Panel del entrenador</text>
+  <rect x="68" y="122" width="824" height="58" rx="9" fill="#eaf1f8"/>
+  <text x="90" y="158" fill="#17365d" font-family="Arial,sans-serif" font-size="18" font-weight="700">Mis clientes</text>
+  <rect x="730" y="135" width="136" height="34" rx="6" fill="#1976d2"/>
+  <text x="750" y="158" fill="#ffffff" font-family="Arial,sans-serif" font-size="14">+ Nuevo cliente</text>
+  <rect x="68" y="198" width="824" height="44" fill="#f5f7fa"/>
+  <text x="88" y="226" fill="#334155" font-family="Arial,sans-serif" font-size="14" font-weight="700">CLIENTE</text>
+  <text x="370" y="226" fill="#334155" font-family="Arial,sans-serif" font-size="14" font-weight="700">OBJETIVO</text>
+  <text x="590" y="226" fill="#334155" font-family="Arial,sans-serif" font-size="14" font-weight="700">RUTINA ACTIVA</text>
+  <text x="790" y="226" fill="#334155" font-family="Arial,sans-serif" font-size="14" font-weight="700">ESTADO</text>
+  <g font-family="Arial,sans-serif" font-size="15" fill="#1f2937">
+    <text x="88" y="276">Daniela Vera</text>
+    <text x="370" y="276">Mejorar fuerza</text>
+    <text x="590" y="276">Fuerza inicial</text>
+    <text x="790" y="276">Pendiente</text>
+    <text x="88" y="326">Luis Mera</text>
+    <text x="370" y="326">Aumentar resistencia</text>
+    <text x="590" y="326">Resistencia base</text>
+    <text x="790" y="326">En progreso</text>
+    <text x="88" y="376">Ana Solórzano</text>
+    <text x="370" y="376">Movilidad general</text>
+    <text x="590" y="376">Movilidad A</text>
+    <text x="790" y="376">Completada</text>
+  </g>
+  <g stroke="#e2e8f0">
+    <line x1="68" y1="292" x2="892" y2="292"/>
+    <line x1="68" y1="342" x2="892" y2="342"/>
+    <line x1="68" y1="392" x2="892" y2="392"/>
+  </g>
+  <rect x="68" y="430" width="824" height="95" rx="8" fill="#eaf6ef" stroke="#c9e7d3"/>
+  <text x="90" y="464" fill="#285f3b" font-family="Arial,sans-serif" font-size="15" font-weight="700">El entrenador consulta clientes y rutinas desde una sola vista.</text>
+  <text x="90" y="495" fill="#285f3b" font-family="Arial,sans-serif" font-size="14">Diseño conceptual; el servidor aún no aplica autenticación por usuario.</text>
+</svg>

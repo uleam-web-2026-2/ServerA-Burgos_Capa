@@ -1,0 +1,27 @@
+$kind: http-request
+name: 'POST Crear Rutina - Días Fuera de Rango'
+method: POST
+url: '{{base_url}}/rutinas'
+order: 3000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "titulo": "Fuerza",
+      "descripcion": "Rutina",
+      "dias_semana": 8,
+      "cliente_id": 1
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 422", () => pm.response.to.have.status(422));
+      pm.test("Respuesta es JSON", () => pm.response.to.be.json);
+      pm.test("Tiene campo error", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("error");
+      });

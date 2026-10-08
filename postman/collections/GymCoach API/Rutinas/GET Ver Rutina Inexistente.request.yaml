@@ -1,0 +1,14 @@
+$kind: http-request
+method: GET
+url: '{{base_url}}/rutinas/99999'
+order: 6000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 404", () => pm.response.to.have.status(404));
+      pm.test("Respuesta es JSON", () => pm.response.to.be.json);
+      pm.test("Tiene campo error", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("error");
+      });

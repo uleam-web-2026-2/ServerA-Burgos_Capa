@@ -1,0 +1,20 @@
+$kind: http-request
+name: 'POST Crear Rutina - JSON Inválido'
+method: POST
+url: '{{base_url}}/rutinas'
+order: 2000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: '{"titulo":"x'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 400", () => pm.response.to.have.status(400));
+      pm.test("Código de error es json_invalido", () => {
+          const json = pm.response.json();
+          pm.expect(json.error.code).to.eql("json_invalido");
+      });

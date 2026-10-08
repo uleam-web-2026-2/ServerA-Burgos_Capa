@@ -1,0 +1,28 @@
+$kind: http-request
+name: 'PUT Actualizar Rutina - Transición Válida'
+method: PUT
+url: '{{base_url}}/rutinas/1'
+order: 8000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "titulo": "Fuerza inicial",
+      "descripcion": "Cuerpo completo",
+      "dias_semana": 3,
+      "estado": "en_progreso",
+      "cliente_id": 1
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 200", () => pm.response.to.have.status(200));
+      pm.test("Respuesta es JSON", () => pm.response.to.be.json);
+      pm.test("Estado actualizado a en_progreso", () => {
+          const json = pm.response.json();
+          pm.expect(json.data.estado).to.eql("en_progreso");
+      });

@@ -1,0 +1,15 @@
+$kind: http-request
+name: 'GET Ver Rutina - ID No Numérico'
+method: GET
+url: '{{base_url}}/rutinas/abc'
+order: 7000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 400", () => pm.response.to.have.status(400));
+      pm.test("Respuesta es JSON", () => pm.response.to.be.json);
+      pm.test("Código de error es id_invalido", () => {
+          const json = pm.response.json();
+          pm.expect(json.error.code).to.eql("id_invalido");
+      });

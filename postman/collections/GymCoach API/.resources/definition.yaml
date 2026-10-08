@@ -1,0 +1,8 @@
+$kind: collection
+name: GymCoach API
+description: Pruebas para la API GymCoach - gestión de clientes y rutinas de entrenadores personales
+variables:
+  - key: base_url
+    value: 'http://localhost:8080'
+  - key: rutina_id
+    value: '1'

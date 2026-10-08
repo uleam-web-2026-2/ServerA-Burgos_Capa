@@ -1,56 +1,80 @@
-# [Nombre del producto]
-
-> Reemplacen todo lo que está entre corchetes en su primer commit.
-> Este README es la puerta de entrada del repositorio: en la semana 1 otra pareja debe poder levantar el servidor siguiendo solo lo que dice aquí, y desde la semana 4 es la base de la integración continua.
+# GymCoach
 
 **Hilo Servidor · ULEAM · Período 2026-2**
-Aplicación para el Servidor Web (IS-503)
+API SaaS para que entrenadores personales administren clientes y rutinas de gimnasio.
 
 ## Integrantes
 
 | Integrante | Usuario de GitHub | Paralelo |
 | --- | --- | --- |
-| [Capa Vargas Renato David] | [Renato-capa] | [Servidor Web A] |
-| [Burgos Macias Adrian Omar] | [adrian03] | [Servidor Web A] |
+| Capa Vargas Renato David | Renato-capa | Servidor Web A |
+| Burgos Macias Adrian Omar | adrian03 | Servidor Web A |
 
-## El producto
+## Requisitos
 
-[Una o dos líneas: qué negocio es y qué vende. Se completa cuando la ficha del negocio pase la compuerta de la semana 3. Mientras tanto, el dominio de trabajo es la mesa de ayuda.]
+- Go compatible con la versión indicada en `go.mod`.
+- PostgreSQL 16.
 
-## Cómo levantar el servidor
+## Configuración y ejecución
+
+1. Cree una base de datos llamada `gymcoach`.
+2. Copie `.env.example` a `.env` y ajuste `DATABASE_URL` si su configuración local es distinta.
+3. Inicie el servidor:
 
 ```bash
 go run .
 ```
 
-El servidor responde en `http://localhost:8080`.
+El servidor escucha en `http://localhost:8080`, crea las tablas `Entrenador`, `Cliente` y `Rutina` y agrega datos ficticios de ejemplo si todavía no hay entrenadores.
 
-Requisitos: Go (versión estable) y PostgreSQL.
+Con Docker puede iniciar PostgreSQL así:
 
-## Base de datos
+```bash
+docker run --name gymcoach-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=gymcoach -p 5432:5432 -d postgres:16
+```
 
-- Opción usada por la pareja: [nativa / contenedor]
-- Con contenedor: `docker run --name pg -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16`
-- Base de datos del proyecto: `[nombre]`
+No reutilice las credenciales de ejemplo fuera de una máquina local. El archivo `.env` está excluido del repositorio.
 
-## Cómo correr las pruebas
+## API disponible
+
+Todas las respuestas JSON correctas usan la envoltura `ok` y `datos`; los errores usan `ok` y `error`.
+
+| Método y ruta | Función |
+| --- | --- |
+| `GET /clientes` | Lista clientes con entrenador y rutinas; admite `?estado=pendiente`, `?estado=en_progreso` o `?estado=completada`. |
+| `POST /clientes` | Crea un cliente asociado a un entrenador existente. |
+| `POST /rutinas` | Crea una rutina en estado `pendiente`. |
+| `GET /rutinas/{id}` | Consulta una rutina y su cliente. |
+| `PUT /rutinas/{id}` | Reemplaza los datos de una rutina y valida su transición de estado. |
+| `DELETE /rutinas/{id}` | Elimina lógicamente una rutina. |
+
+La secuencia permitida es `pendiente → en_progreso → completada`. El contrato esperado de roles se documenta en [docs/hito1_ficha_del_negocio.md](docs/hito1_ficha_del_negocio.md), pero autenticación y autorización todavía no están implementadas: no publique la API en Internet ni la use con datos personales reales.
+
+## Pruebas
 
 ```bash
 go test ./...
 ```
 
-Las pruebas corren también en la integración continua (pestaña Actions). Desde la semana 4, un entregable cuyas pruebas no pasan en la integración no se recibe.
+El script `pruebas.sh` contiene solicitudes manuales para probar la API contra `localhost:8080`. El contrato OpenAPI está en [docs/openapi.yaml](docs/openapi.yaml).
 
-## Convenciones del repositorio
+## Hito 1
 
-- Un commit de cada integrante como mínimo por taller; el commit de cierre se hace en clase.
-- Mensajes de commit: qué cambió y por qué, entendibles sin el autor presente.
-- Uso de IA declarado en el cuerpo del commit: una línea con qué herramienta y para qué parte.
-- Ningún secreto en el código ni en el historial: la configuración se externaliza (semana 4).
+- [Ficha del negocio](docs/hito1_ficha_del_negocio.md)
+- [Addendum técnico](docs/hito1_addendum.md)
+- [Presentación en PowerPoint](docs/hito1_presentacion.pptx)
+- [Presentación en PDF](docs/hito1_presentacion.pdf)
+- [Guion de diapositivas](docs/hito1_presentacion.md)
+- [Decisiones de arquitectura](docs/decisiones.md)
 
 ## Estructura
 
-```
-docs/ficha_negocio.md   → ficha del negocio (se entrega antes del día A de la semana 3)
-main.go                 → punto de entrada del servidor
+```text
+main.go                          → configuración de servidor, PostgreSQL y rutas
+internal/config/                 → carga de variables de entorno
+internal/gymcoach/               → entidades, transiciones, manejadores y pruebas
+internal/respuesta/              → formato JSON compartido para respuestas
+docs/hito1_ficha_del_negocio.md  → ficha del Hito 1
+docs/hito1_addendum.md           → addendum técnico del Hito 1
+docs/openapi.yaml                → contrato de la API
 ```

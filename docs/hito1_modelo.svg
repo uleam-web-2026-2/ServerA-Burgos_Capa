@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="460" viewBox="0 0 960 460">
+  <rect width="960" height="460" fill="#f4f7fb"/>
+  <text x="50" y="55" fill="#12345a" font-family="Arial,sans-serif" font-size="30" font-weight="700">Modelo de datos · GymCoach</text>
+  <g font-family="Arial,sans-serif">
+    <rect x="55" y="120" width="235" height="245" rx="12" fill="#fff" stroke="#47739d" stroke-width="2"/>
+    <rect x="55" y="120" width="235" height="48" rx="12" fill="#17365d"/>
+    <text x="78" y="152" fill="#fff" font-size="20" font-weight="700">Entrenador</text>
+    <text x="78" y="205" fill="#24364b" font-size="17">ID: uint</text>
+    <text x="78" y="240" fill="#24364b" font-size="17">Nombre: string</text>
+    <text x="78" y="275" fill="#24364b" font-size="17">Correo: string</text>
+    <text x="78" y="320" fill="#62758a" font-size="14">1 entrenador por cuenta</text>
+    <rect x="365" y="120" width="235" height="245" rx="12" fill="#fff" stroke="#47739d" stroke-width="2"/>
+    <rect x="365" y="120" width="235" height="48" rx="12" fill="#17365d"/>
+    <text x="388" y="152" fill="#fff" font-size="20" font-weight="700">Cliente</text>
+    <text x="388" y="205" fill="#24364b" font-size="17">ID: uint</text>
+    <text x="388" y="240" fill="#24364b" font-size="17">Nombre, correo</text>
+    <text x="388" y="275" fill="#24364b" font-size="17">Objetivo: string</text>
+    <text x="388" y="320" fill="#62758a" font-size="14">EntrenadorID: uint</text>
+    <rect x="675" y="120" width="235" height="245" rx="12" fill="#fff" stroke="#47739d" stroke-width="2"/>
+    <rect x="675" y="120" width="235" height="48" rx="12" fill="#17365d"/>
+    <text x="698" y="152" fill="#fff" font-size="20" font-weight="700">Rutina</text>
+    <text x="698" y="205" fill="#24364b" font-size="17">ID: uint</text>
+    <text x="698" y="240" fill="#24364b" font-size="17">Título, descripción</text>
+    <text x="698" y="275" fill="#24364b" font-size="17">Días: 1–7 · estado</text>
+    <text x="698" y="320" fill="#62758a" font-size="14">ClienteID: uint</text>
+  </g>
+  <g fill="none" stroke="#1976d2" stroke-width="3">
+    <path d="M290 242 H365" marker-end="url(#arrow)"/>
+    <path d="M600 242 H675" marker-end="url(#arrow)"/>
+  </g>
+  <g fill="#174c7e" font-family="Arial,sans-serif" font-size="16" font-weight="700">
+    <text x="303" y="222">1:N</text>
+    <text x="613" y="222">1:N</text>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0 0 L9 4.5 L0 9 Z" fill="#1976d2"/>
+    </marker>
+  </defs>
+  <text x="55" y="420" fill="#62758a" font-family="Arial,sans-serif" font-size="15">Un entrenador administra varios clientes; cada cliente puede recibir varias rutinas.</text>
+</svg>

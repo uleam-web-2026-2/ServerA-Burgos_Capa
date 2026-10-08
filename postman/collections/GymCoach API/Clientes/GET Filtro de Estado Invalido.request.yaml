@@ -1,0 +1,23 @@
+$kind: http-request
+name: 'GET Filtro de Estado Inválido'
+method: GET
+url: '{{base_url}}/clientes?estado=terminada'
+order: 3000
+queryParams:
+  - key: estado
+    value: terminada
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 422", () => pm.response.to.have.status(422));
+      pm.test("Respuesta es JSON", () => pm.response.to.be.json);
+      pm.test("Tiene campo error", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("error");
+      });
+      pm.test("Código de error es estado_invalido", () => {
+          const json = pm.response.json();
+          pm.expect(json.error).to.have.property("code");
+          pm.expect(json.error.code).to.eql("estado_invalido");
+      });

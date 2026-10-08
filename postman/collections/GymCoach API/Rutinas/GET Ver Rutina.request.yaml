@@ -1,0 +1,23 @@
+$kind: http-request
+method: GET
+url: '{{base_url}}/rutinas/1'
+order: 5000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 200", () => pm.response.to.have.status(200));
+      pm.test("Respuesta es JSON", () => pm.response.to.be.json);
+      pm.test("Rutina tiene campos requeridos", () => {
+          const json = pm.response.json();
+          pm.expect(json.data).to.have.property("id");
+          pm.expect(json.data).to.have.property("titulo");
+          pm.expect(json.data).to.have.property("descripcion");
+          pm.expect(json.data).to.have.property("dias_semana");
+          pm.expect(json.data).to.have.property("estado");
+          pm.expect(json.data).to.have.property("cliente_id");
+      });
+      pm.test("Estado es válido", () => {
+          const json = pm.response.json();
+          pm.expect(["pendiente","en_progreso","completada"]).to.include(json.data.estado);
+      });

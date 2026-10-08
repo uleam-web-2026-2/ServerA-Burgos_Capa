@@ -1,0 +1,382 @@
+openapi: 3.1.0
+info:
+  title: GymCoach API
+  version: 1.0.0
+  description: API de desarrollo para gestionar clientes y rutinas de entrenadores personales. Aún no implementa autenticación ni autorización.
+servers:
+  - url: http://localhost:8080
+paths:
+  /clientes:
+    get:
+      summary: Lista clientes con entrenador y rutinas
+      parameters:
+        - name: estado
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/EstadoRutina"
+      responses:
+        "200":
+          description: Lista de clientes y relaciones cargadas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaListaClientes"
+        "422":
+          description: Filtro de estado no válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Error de base de datos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      summary: Crea un cliente para un entrenador existente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NuevoCliente"
+      responses:
+        "201":
+          description: Cliente creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaCliente"
+        "400":
+          description: JSON inválido o campos desconocidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Datos incompletos, entrenador inexistente o correo duplicado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Error al validar el entrenador
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /rutinas:
+    post:
+      summary: Crea una rutina en estado pendiente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NuevaRutina"
+      responses:
+        "201":
+          description: Rutina creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaRutina"
+        "400":
+          description: JSON inválido o campos desconocidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Datos inválidos o cliente inexistente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Error al guardar
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /rutinas/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ID"
+    get:
+      summary: Consulta una rutina y su cliente
+      responses:
+        "200":
+          description: Rutina encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaRutina"
+        "400":
+          description: ID no válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rutina no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Error de base de datos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      summary: Reemplaza los datos y cambia el estado de una rutina
+      description: Requiere todos los campos. La rutina solo puede avanzar de pendiente a en_progreso y de en_progreso a completada.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActualizacionRutina"
+      responses:
+        "200":
+          description: Rutina actualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaRutina"
+        "400":
+          description: ID o JSON no válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rutina no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Transición prohibida o cambio concurrente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Datos inválidos o cliente inexistente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Error de base de datos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      summary: Elimina lógicamente una rutina
+      responses:
+        "200":
+          description: Rutina eliminada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaMensaje"
+        "400":
+          description: ID no válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rutina no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Error al eliminar
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  parameters:
+    ID:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+  schemas:
+    EstadoRutina:
+      type: string
+      enum: [pendiente, en_progreso, completada]
+    NuevoCliente:
+      type: object
+      additionalProperties: false
+      required: [nombre, correo, objetivo, entrenador_id]
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+        correo:
+          type: string
+          minLength: 1
+        objetivo:
+          type: string
+          minLength: 1
+        entrenador_id:
+          type: integer
+          minimum: 1
+    NuevaRutina:
+      type: object
+      additionalProperties: false
+      required: [titulo, descripcion, dias_semana, cliente_id]
+      properties:
+        titulo:
+          type: string
+          minLength: 1
+        descripcion:
+          type: string
+          minLength: 1
+        dias_semana:
+          type: integer
+          minimum: 1
+          maximum: 7
+        cliente_id:
+          type: integer
+          minimum: 1
+    ActualizacionRutina:
+      allOf:
+        - $ref: "#/components/schemas/NuevaRutina"
+        - type: object
+          required: [estado]
+          properties:
+            estado:
+              $ref: "#/components/schemas/EstadoRutina"
+    BaseModel:
+      type: object
+      properties:
+        id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    Entrenador:
+      allOf:
+        - $ref: "#/components/schemas/BaseModel"
+        - type: object
+          required: [nombre, correo]
+          properties:
+            nombre:
+              type: string
+            correo:
+              type: string
+              format: email
+    Cliente:
+      allOf:
+        - $ref: "#/components/schemas/BaseModel"
+        - type: object
+          required: [nombre, correo, objetivo, entrenador_id]
+          properties:
+            nombre:
+              type: string
+            correo:
+              type: string
+              format: email
+            objetivo:
+              type: string
+            entrenador_id:
+              type: integer
+            entrenador:
+              $ref: "#/components/schemas/Entrenador"
+            rutinas:
+              type: array
+              items:
+                $ref: "#/components/schemas/Rutina"
+    Rutina:
+      allOf:
+        - $ref: "#/components/schemas/BaseModel"
+        - type: object
+          required: [titulo, descripcion, dias_semana, estado, cliente_id]
+          properties:
+            titulo:
+              type: string
+            descripcion:
+              type: string
+            dias_semana:
+              type: integer
+              minimum: 1
+              maximum: 7
+            estado:
+              $ref: "#/components/schemas/EstadoRutina"
+            cliente_id:
+              type: integer
+            cliente:
+              $ref: "#/components/schemas/Cliente"
+    RespuestaCliente:
+      type: object
+      required: [ok, datos]
+      properties:
+        ok:
+          type: boolean
+          const: true
+        datos:
+          $ref: "#/components/schemas/Cliente"
+    RespuestaRutina:
+      type: object
+      required: [ok, datos]
+      properties:
+        ok:
+          type: boolean
+          const: true
+        datos:
+          $ref: "#/components/schemas/Rutina"
+    RespuestaListaClientes:
+      type: object
+      required: [ok, datos]
+      properties:
+        ok:
+          type: boolean
+          const: true
+        datos:
+          type: array
+          items:
+            $ref: "#/components/schemas/Cliente"
+    RespuestaMensaje:
+      type: object
+      required: [ok, datos]
+      properties:
+        ok:
+          type: boolean
+          const: true
+        datos:
+          type: object
+          required: [mensaje]
+          properties:
+            mensaje:
+              type: string
+    ErrorResponse:
+      type: object
+      required: [ok, error]
+      properties:
+        ok:
+          type: boolean
+          const: false
+        error:
+          type: object
+          required: [codigo, mensaje]
+          properties:
+            codigo:
+              type: string
+            mensaje:
+              type: string

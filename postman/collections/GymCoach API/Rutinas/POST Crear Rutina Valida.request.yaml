@@ -1,0 +1,38 @@
+$kind: http-request
+name: 'POST Crear Rutina Válida'
+method: POST
+url: '{{base_url}}/rutinas'
+order: 1000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "titulo": "Fuerza inicial",
+      "descripcion": "Cuerpo completo con cargas progresivas",
+      "dias_semana": 3,
+      "cliente_id": 1
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 201", () => pm.response.to.have.status(201));
+      pm.test("Respuesta es JSON", () => pm.response.to.be.json);
+      pm.test("Rutina creada tiene id y estado pendiente", () => {
+          const json = pm.response.json();
+          pm.expect(json.data).to.have.property("id");
+          pm.expect(json.data.estado).to.eql("pendiente");
+      });
+      pm.test("Campos de rutina correctos", () => {
+          const json = pm.response.json();
+          pm.expect(json.data.titulo).to.eql("Fuerza inicial");
+          pm.expect(json.data.dias_semana).to.eql(3);
+          pm.expect(json.data.cliente_id).to.eql(1);
+      });
+      // Guardar ID para requests siguientes
+      if (pm.response.code === 201) {
+          pm.collectionVariables.set("rutina_id", pm.response.json().data.id);
+      }

@@ -1,0 +1,33 @@
+$kind: http-request
+name: 'POST Crear Cliente Válido'
+method: POST
+url: '{{base_url}}/clientes'
+order: 4000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "María Solórzano",
+      "correo": "maria@example.test",
+      "objetivo": "Mejorar fuerza general",
+      "entrenador_id": 1
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 201", () => pm.response.to.have.status(201));
+      pm.test("Respuesta es JSON", () => pm.response.to.be.json);
+      pm.test("Cliente creado tiene id", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("data");
+          pm.expect(json.data).to.have.property("id");
+      });
+      pm.test("Nombre y correo coinciden", () => {
+          const json = pm.response.json();
+          pm.expect(json.data.nombre).to.eql("María Solórzano");
+          pm.expect(json.data.correo).to.eql("maria@example.test");
+      });

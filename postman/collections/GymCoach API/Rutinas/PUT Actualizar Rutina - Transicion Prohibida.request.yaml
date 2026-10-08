@@ -1,0 +1,28 @@
+$kind: http-request
+name: 'PUT Actualizar Rutina - Transición Prohibida'
+method: PUT
+url: '{{base_url}}/rutinas/1'
+order: 9000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "titulo": "Fuerza inicial",
+      "descripcion": "Cuerpo completo",
+      "dias_semana": 3,
+      "estado": "completada",
+      "cliente_id": 1
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 409", () => pm.response.to.have.status(409));
+      pm.test("Respuesta es JSON", () => pm.response.to.be.json);
+      pm.test("Tiene campo error", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("error");
+      });

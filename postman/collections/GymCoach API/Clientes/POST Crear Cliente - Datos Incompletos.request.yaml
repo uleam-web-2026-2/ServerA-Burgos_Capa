@@ -1,0 +1,26 @@
+$kind: http-request
+method: POST
+url: '{{base_url}}/clientes'
+order: 6000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "",
+      "correo": "",
+      "objetivo": "",
+      "entrenador_id": 0
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 422", () => pm.response.to.have.status(422));
+      pm.test("Respuesta es JSON", () => pm.response.to.be.json);
+      pm.test("Código de error es datos_requeridos", () => {
+          const json = pm.response.json();
+          pm.expect(json.error.code).to.eql("datos_requeridos");
+      });

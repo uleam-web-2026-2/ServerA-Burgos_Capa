@@ -1,0 +1,26 @@
+$kind: http-request
+method: GET
+url: '{{base_url}}/clientes'
+order: 1000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 200", () => pm.response.to.have.status(200));
+      pm.test("Respuesta es JSON", () => pm.response.to.be.json);
+      pm.test("Tiene campo data con array", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("data");
+          pm.expect(json.data).to.be.an("array");
+      });
+      pm.test("Cada cliente tiene id, nombre, correo, objetivo, entrenador_id", () => {
+          const json = pm.response.json();
+          if (json.data.length > 0) {
+              const c = json.data[0];
+              pm.expect(c).to.have.property("id");
+              pm.expect(c).to.have.property("nombre");
+              pm.expect(c).to.have.property("correo");
+              pm.expect(c).to.have.property("objetivo");
+              pm.expect(c).to.have.property("entrenador_id");
+          }
+      });
