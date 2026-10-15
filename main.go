@@ -11,6 +11,7 @@ import (
 
 	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/config"
 	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/gymcoach"
+	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/sesion"
 )
 
 func main() {
@@ -48,11 +49,22 @@ func main() {
 		log.Fatal("no se pudieron cargar los datos de ejemplo: ", err)
 	}
 
+	if err := db.AutoMigrate(&sesion.Usuario{}); err != nil {
+		log.Fatal("no se pudo migrar la tabla de usuarios: ", err)
+	}
+	if err := sesion.Sembrar(db); err != nil {
+		log.Fatal("no se pudieron sembrar los usuarios: ", err)
+	}
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(cfg.TiempoEspera))
-	(&gymcoach.Manejador{DB: db}).Rutas(r)
+
+	tokens := sesion.NuevosTokens(cfg.ClaveFirma)
+	login := &sesion.Manejador{DB: db, Tokens: tokens}
+	r.Post("/login", login.Login) // pública: es la puerta para conseguir el token
+	(&gymcoach.Manejador{DB: db}).Rutas(r, tokens)
 
 	servidor := &http.Server{
 		Addr:         ":" + cfg.Puerto,

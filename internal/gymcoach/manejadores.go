@@ -12,19 +12,32 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/respuesta"
+	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/sesion"
 )
 
 type Manejador struct {
 	DB *gorm.DB
 }
 
-func (m *Manejador) Rutas(r chi.Router) {
-	r.Get("/clientes", m.listarClientes)
-	r.Post("/clientes", m.crearCliente)
-	r.Post("/rutinas", m.crearRutina)
-	r.Get("/rutinas/{id}", m.verRutina)
-	r.Put("/rutinas/{id}", m.actualizarRutina)
-	r.Delete("/rutinas/{id}", m.borrarRutina)
+func (m *Manejador) Rutas(r chi.Router, tokens *sesion.Tokens) {
+	// Nivel 1 · Pública: cualquiera, sin token.
+	// (POST /login se registra en main.go. Aquí no hay rutas públicas.)
+
+	// Nivel 2 · Con sesión: antes del manejador corre el guardia.
+	conSesion := r.With(tokens.Autenticar)
+	conSesion.Get("/rutinas/{id}", m.verRutina)
+
+	// Nivel 3 · Solo entrenadores: después del guardia se revisa el rol.
+	soloEntrenador := conSesion.With(sesion.SoloRol(sesion.RolEntrenador))
+	soloEntrenador.Get("/clientes", m.listarClientes)
+	soloEntrenador.Post("/clientes", m.crearCliente)
+	soloEntrenador.Post("/rutinas", m.crearRutina)
+	soloEntrenador.Put("/rutinas/{id}", m.actualizarRutina)
+	soloEntrenador.Delete("/rutinas/{id}", m.borrarRutina)
+
+	// Nivel 3 · Solo clientes: el cambio de estado es de quien sigue la rutina.
+	soloCliente := conSesion.With(sesion.SoloRol(sesion.RolCliente))
+	soloCliente.Patch("/rutinas/{id}", m.cambiarEstado)
 }
 
 func decodificar(r *http.Request, destino any) error {
@@ -186,7 +199,7 @@ func (m *Manejador) actualizarRutina(w http.ResponseWriter, r *http.Request) {
 		Titulo      string `json:"titulo"`
 		Descripcion string `json:"descripcion"`
 		DiasSemana  int    `json:"dias_semana"`
-		Estado      string `json:"estado"`
+		Estado      string `json:"estado"` // se acepta pero se ignora: el estado solo cambia con PATCH
 		ClienteID   uint   `json:"cliente_id"`
 	}
 	if err := decodificar(r, &entrada); err != nil {
@@ -203,10 +216,6 @@ func (m *Manejador) actualizarRutina(w http.ResponseWriter, r *http.Request) {
 		respuesta.Error(w, http.StatusUnprocessableEntity, "dias_semana_invalidos", "dias_semana debe estar entre 1 y 7")
 		return
 	}
-	if !puedeTransicionar(existente.Estado, entrada.Estado) {
-		respuesta.Error(w, http.StatusConflict, "transicion_invalida", "La transición de estado solicitada no está permitida")
-		return
-	}
 	var cliente Cliente
 	if err := m.DB.First(&cliente, entrada.ClienteID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -217,12 +226,11 @@ func (m *Manejador) actualizarRutina(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	actualizacion := m.DB.Model(&Rutina{}).
-		Where("id = ? AND estado = ?", existente.ID, existente.Estado).
+		Where("id = ?", existente.ID).
 		Updates(map[string]any{
 			"titulo":      entrada.Titulo,
 			"descripcion": entrada.Descripcion,
 			"dias_semana": entrada.DiasSemana,
-			"estado":      entrada.Estado,
 			"cliente_id":  entrada.ClienteID,
 		})
 	if actualizacion.Error != nil {
@@ -230,7 +238,7 @@ func (m *Manejador) actualizarRutina(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if actualizacion.RowsAffected == 0 {
-		respuesta.Error(w, http.StatusConflict, "estado_modificado", "La rutina cambió mientras se procesaba; vuelva a consultarla")
+		respuesta.Error(w, http.StatusNotFound, "no_encontrada", "Rutina no encontrada")
 		return
 	}
 	if err := m.DB.Preload("Cliente").First(&existente, id).Error; err != nil {

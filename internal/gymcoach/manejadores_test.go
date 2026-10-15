@@ -5,15 +5,9 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	"github.com/go-chi/chi/v5"
 )
 
-func enrutadorDePrueba() http.Handler {
-	r := chi.NewRouter()
-	(&Manejador{}).Rutas(r)
-	return r
-}
+func enrutadorDePrueba() http.Handler { return enrutadorCon(rolDePrueba) }
 
 func TestCrearRutinaValidaDatosAntesDeAccederABase(t *testing.T) {
 	casos := []struct {

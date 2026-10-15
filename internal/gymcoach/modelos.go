@@ -4,11 +4,13 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+
+	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/sesion"
 )
 
 const (
-	RolEntrenador = "entrenador"
-	RolCliente    = "cliente"
+	RolEntrenador = sesion.RolEntrenador
+	RolCliente    = sesion.RolCliente
 )
 
 var estadosValidos = map[string]bool{
@@ -55,16 +57,8 @@ type Rutina struct {
 	Cliente     Cliente `json:"cliente,omitempty" gorm:"foreignKey:ClienteID"`
 }
 
+// puedeTransicionar delega en la máquina de estados de estado.go:
+// una sola fuente de verdad para las transiciones.
 func puedeTransicionar(de, a string) bool {
-	if de == a {
-		return estadosValidos[a]
-	}
-	switch de {
-	case "pendiente":
-		return a == "en_progreso"
-	case "en_progreso":
-		return a == "completada"
-	default:
-		return false
-	}
+	return puedePasar(de, a)
 }
