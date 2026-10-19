@@ -23,16 +23,16 @@ scripts:
       pm.test("Respuesta es JSON", () => pm.response.to.be.json);
       pm.test("Rutina creada tiene id y estado pendiente", () => {
           const json = pm.response.json();
-          pm.expect(json.data).to.have.property("id");
-          pm.expect(json.data.estado).to.eql("pendiente");
+          pm.expect(json.datos).to.have.property("id");
+          pm.expect(json.datos.estado).to.eql("pendiente");
       });
       pm.test("Campos de rutina correctos", () => {
           const json = pm.response.json();
-          pm.expect(json.data.titulo).to.eql("Fuerza inicial");
-          pm.expect(json.data.dias_semana).to.eql(3);
-          pm.expect(json.data.cliente_id).to.eql(1);
+          pm.expect(json.datos.titulo).to.eql("Fuerza inicial");
+          pm.expect(json.datos.dias_semana).to.eql(3);
+          pm.expect(json.datos.cliente_id).to.eql(1);
       });
       // Guardar ID para requests siguientes
       if (pm.response.code === 201) {
-          pm.collectionVariables.set("rutina_id", pm.response.json().data.id);
+          pm.collectionVariables.set("rutina_id", pm.response.json().datos.id);
       }

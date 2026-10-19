@@ -48,6 +48,7 @@ func TestClienteNoUsaLasRutasDelEntrenador(t *testing.T) {
 	rutas := []struct{ metodo, ruta string }{
 		{"GET", "/clientes"},
 		{"POST", "/clientes"},
+		{"GET", "/rutinas"},
 		{"POST", "/rutinas"},
 		{"PUT", "/rutinas/1"},
 		{"DELETE", "/rutinas/1"},
@@ -61,5 +62,15 @@ func TestClienteNoUsaLasRutasDelEntrenador(t *testing.T) {
 				t.Fatalf("se esperaba 403 y llegó %d", rec.Code)
 			}
 		})
+	}
+}
+
+func TestListarRutinasRechazaFiltroInvalidoAntesDeAccederABase(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/rutinas?estado=terminada", nil)
+	rec := httptest.NewRecorder()
+	enrutadorCon(RolEntrenador).ServeHTTP(rec, req)
+	if rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("se esperaba %d y llegó %d con cuerpo %s",
+			http.StatusUnprocessableEntity, rec.Code, rec.Body.String())
 	}
 }

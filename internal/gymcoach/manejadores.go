@@ -31,6 +31,7 @@ func (m *Manejador) Rutas(r chi.Router, tokens *sesion.Tokens) {
 	soloEntrenador := conSesion.With(sesion.SoloRol(sesion.RolEntrenador))
 	soloEntrenador.Get("/clientes", m.listarClientes)
 	soloEntrenador.Post("/clientes", m.crearCliente)
+	soloEntrenador.Get("/rutinas", m.listarRutinas)
 	soloEntrenador.Post("/rutinas", m.crearRutina)
 	soloEntrenador.Put("/rutinas/{id}", m.actualizarRutina)
 	soloEntrenador.Delete("/rutinas/{id}", m.borrarRutina)
@@ -117,6 +118,26 @@ func (m *Manejador) listarClientes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respuesta.Exito(w, http.StatusOK, clientes)
+}
+
+func (m *Manejador) listarRutinas(w http.ResponseWriter, r *http.Request) {
+	estado := r.URL.Query().Get("estado")
+	if estado != "" && !estadosValidos[estado] {
+		respuesta.Error(w, http.StatusUnprocessableEntity, "estado_invalido",
+			"El filtro de estado de rutina no es válido")
+		return
+	}
+	var rutinas []Rutina
+	query := m.DB.Preload("Cliente").Order("id ASC")
+	if estado != "" {
+		query = query.Where("estado = ?", estado)
+	}
+	if err := query.Find(&rutinas).Error; err != nil {
+		respuesta.Error(w, http.StatusInternalServerError, "error_base",
+			"No se pudo obtener la lista de rutinas")
+		return
+	}
+	respuesta.Exito(w, http.StatusOK, rutinas)
 }
 
 func (m *Manejador) crearRutina(w http.ResponseWriter, r *http.Request) {

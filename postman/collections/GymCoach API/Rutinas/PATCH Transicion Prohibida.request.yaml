@@ -1,0 +1,29 @@
+$kind: http-request
+name: PATCH Transición Prohibida
+method: PATCH
+url: '{{base_url}}/rutinas/{{rutina_id}}'
+order: 2000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "estado": "completada"
+    }
+auth:
+  type: bearer
+  bearer:
+    - key: token
+      value: '{{token_cliente}}'
+      type: string
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 422", () => pm.response.to.have.status(422));
+      pm.test("Código transicion_prohibida", () => {
+          const json = pm.response.json();
+          pm.expect(json.error.codigo).to.eql("transicion_prohibida");
+      });

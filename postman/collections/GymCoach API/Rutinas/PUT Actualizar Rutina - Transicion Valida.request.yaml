@@ -1,7 +1,8 @@
 $kind: http-request
-name: 'PUT Actualizar Rutina - Transición Válida'
+name: 'PUT Actualizar Rutina'
 method: PUT
-url: '{{base_url}}/rutinas/1'
+url: '{{base_url}}/rutinas/{{rutina_id}}'
+order: 5000
 order: 8000
 headers:
   - key: Content-Type
@@ -13,7 +14,6 @@ body:
       "titulo": "Fuerza inicial",
       "descripcion": "Cuerpo completo",
       "dias_semana": 3,
-      "estado": "en_progreso",
       "cliente_id": 1
     }
 scripts:
@@ -22,7 +22,7 @@ scripts:
     code: |-
       pm.test("Status 200", () => pm.response.to.have.status(200));
       pm.test("Respuesta es JSON", () => pm.response.to.be.json);
-      pm.test("Estado actualizado a en_progreso", () => {
+          pm.test("Rutina actualizada", () => {
           const json = pm.response.json();
-          pm.expect(json.data.estado).to.eql("en_progreso");
+            pm.expect(json.datos.titulo).to.eql("Fuerza inicial");
       });

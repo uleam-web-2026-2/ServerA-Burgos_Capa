@@ -1,0 +1,22 @@
+$kind: http-request
+name: PATCH Entrenador Prohibido
+method: PATCH
+url: '{{base_url}}/rutinas/{{rutina_id}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "estado": "en_progreso"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 403", () => pm.response.to.have.status(403));
+      pm.test("Código rol_no_permitido", () => {
+          const json = pm.response.json();
+          pm.expect(json.error.codigo).to.eql("rol_no_permitido");
+      });

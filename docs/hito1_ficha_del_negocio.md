@@ -182,7 +182,7 @@ En cada celda: no · sí · todos · solo los suyos.
 | Iniciar o completar una rutina | No | Solo las suyas |
 | Cambiar el entrenador responsable | No | No |
 
-**Estado de implementación:** los roles y permisos definen el comportamiento esperado del producto, pero autenticación y autorización por usuario aún no están implementadas en el servidor. No se debe publicar la API ni cargar datos personales reales hasta añadir esos controles.
+**Estado de implementación al taller de la semana 7:** el servidor emite tokens Bearer y aplica los roles entrenador y cliente en las rutas. La sesión aún no está vinculada con un entrenador o cliente concreto, por lo que no se filtran registros por propietario. No se debe publicar la API ni cargar datos personales reales.
 
 ## 7. Mapa de endpoints por rol
 
@@ -191,23 +191,27 @@ En cada celda: no · sí · todos · solo los suyos.
 | `GET /clientes` | Entrenador | Panel de clientes; incluye sus rutinas | Clientes con entrenador y rutinas; acepta `?estado=` | Filtro de estado permitido | 422, 500 |
 | `POST /clientes` | Entrenador | Alta de cliente | Cliente creado | Nombre, correo, objetivo y entrenador existentes | 400, 422, 500 |
 | `POST /rutinas` | Entrenador | Crear rutina | Rutina nueva en `pendiente` | Título, descripción, días 1–7 y cliente existente | 400, 422, 500 |
-| `GET /rutinas/{id}` | Entrenador o cliente propietario | Detalle de rutina | Rutina y cliente asignado | ID entero positivo y registro existente | 400, 404, 500 |
-| `PUT /rutinas/{id}` | Entrenador edita; cliente cambia el estado propio | Editor/detalle de rutina | Rutina actualizada | Campos obligatorios, días 1–7 y transición permitida | 400, 404, 409, 422, 500 |
-| `DELETE /rutinas/{id}` | Entrenador | Administración de rutinas | Confirmación de eliminación lógica | ID y registro existente | 400, 404, 500 |
+| `GET /rutinas` | Entrenador | Administración de rutinas | Rutinas con cliente; admite `?estado=` | Filtro de estado permitido | 401, 403, 422, 500 |
+| `GET /rutinas/{id}` | Cualquier usuario con sesión; sin filtro de propietario | Detalle de rutina | Rutina y cliente asignado | ID entero positivo y registro existente | 400, 401, 404, 500 |
+| `PUT /rutinas/{id}` | Entrenador | Editor de rutina | Rutina actualizada; estado sin cambios | Campos obligatorios y días 1–7 | 400, 401, 403, 404, 422, 500 |
+| `PATCH /rutinas/{id}` | Cliente | Iniciar o completar una rutina | Rutina con el estado nuevo | ID, estado válido y transición permitida | 400, 401, 403, 404, 409, 422, 500 |
+| `DELETE /rutinas/{id}` | Entrenador | Administración de rutinas | Confirmación de eliminación lógica | ID y registro existente | 400, 401, 403, 404, 500 |
+| `POST /login` | Público | Inicio de sesión | Token Bearer | Credenciales de usuario | 400, 401, 500 |
 
-La lista de rutinas de cada cliente se entrega como parte de `GET /clientes`, para que la vista principal pueda mostrar clientes y planes con una sola consulta lógica. La propiedad individual y los roles están especificados como contrato, pero requieren autenticación antes de filtrar datos por usuario.
+La lista de rutinas asociadas a cada cliente también se entrega en `GET /clientes`. Las rutas protegidas requieren sesión y las operaciones de administración se limitan al entrenador; el cliente solo puede cambiar estados. El control de propiedad individual queda pendiente porque los usuarios de sesión aún no se relacionan con los registros del negocio.
 
 ### Matriz pantalla × endpoint
 
-| Pantalla | `GET /clientes` | `POST /clientes` | `POST /rutinas` | `GET /rutinas/{id}` | `PUT /rutinas/{id}` | `DELETE /rutinas/{id}` |
-|----------|:--------------:|:---------------:|:--------------:|:-------------------:|:-------------------:|:----------------------:|
-| Panel de clientes | X |  |  |  |  |  |
-| Alta de cliente |  | X |  |  |  |  |
-| Crear rutina |  |  | X |  |  |  |
-| Detalle de rutina |  |  |  | X | X |  |
-| Gestión de rutinas |  |  |  | X | X | X |
+| Pantalla | `POST /login` | `GET /clientes` | `POST /clientes` | `GET /rutinas` | `POST /rutinas` | `GET /rutinas/{id}` | `PUT /rutinas/{id}` | `PATCH /rutinas/{id}` | `DELETE /rutinas/{id}` |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Inicio de sesión | X |  |  |  |  |  |  |  |  |
+| Panel de clientes |  | X |  |  |  |  |  |  |  |
+| Alta de cliente |  |  | X |  |  |  |  |  |  |
+| Crear rutina |  |  |  |  | X |  |  |  |  |
+| Detalle y avance de rutina |  |  |  |  |  | X | X | X |  |
+| Gestión de rutinas |  |  |  | X |  | X | X |  | X |
 
-**Endpoints implementados en código:** `internal/gymcoach/manejadores.go`. Los roles sirven como requisito del producto; las rutas todavía no aplican autorización.
+**Endpoints implementados en código:** `internal/gymcoach/manejadores.go`; el registro de sesión está en `main.go` y `internal/sesion/`.
 
 ## 8. Declaración de IA
 

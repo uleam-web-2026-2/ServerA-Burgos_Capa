@@ -2,12 +2,15 @@ openapi: 3.1.0
 info:
   title: GymCoach API
   version: 1.0.0
-  description: API de desarrollo para gestionar clientes y rutinas de entrenadores personales. Aún no implementa autenticación ni autorización.
+  description: API de GymCoach para gestionar clientes y rutinas. Las rutas protegidas requieren un token Bearer obtenido en POST /login; los permisos se aplican por rol.
 servers:
   - url: http://localhost:8080
+security:
+  - BearerAuth: []
 paths:
   /clientes:
     get:
+      operationId: listarClientes
       summary: Lista clientes con entrenador y rutinas
       parameters:
         - name: estado
@@ -22,6 +25,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RespuestaListaClientes"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
         "422":
           description: Filtro de estado no válido
           content:
@@ -35,6 +42,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
     post:
+      operationId: crearCliente
       summary: Crea un cliente para un entrenador existente
       requestBody:
         required: true
@@ -49,6 +57,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RespuestaCliente"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
         "400":
           description: JSON inválido o campos desconocidos
           content:
@@ -68,7 +80,40 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
   /rutinas:
+    get:
+      operationId: listarRutinas
+      summary: Lista rutinas con su cliente
+      parameters:
+        - name: estado
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/EstadoRutina"
+      responses:
+        "200":
+          description: Lista de rutinas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaListaRutinas"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "422":
+          description: Filtro de estado no válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Error de base de datos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     post:
+      operationId: crearRutina
       summary: Crea una rutina en estado pendiente
       requestBody:
         required: true
@@ -83,6 +128,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RespuestaRutina"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
         "400":
           description: JSON inválido o campos desconocidos
           content:
@@ -105,6 +154,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ID"
     get:
+      operationId: verRutina
       summary: Consulta una rutina y su cliente
       responses:
         "200":
@@ -113,6 +163,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RespuestaRutina"
+        "401":
+          $ref: "#/components/responses/Error401"
         "400":
           description: ID no válido
           content:
@@ -131,9 +183,61 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: cambiarEstadoRutina
+      summary: Cambia el estado de una rutina
+      description: Solo el cliente puede iniciar o completar su rutina. Una transición no permitida responde 422.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CambioEstadoRutina"
+      responses:
+        "200":
+          description: Estado actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaRutina"
+        "400":
+          description: ID o JSON no válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          description: Rutina no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: El estado cambió mientras se procesaba la transición
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Estado inválido o transición prohibida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Error de base de datos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     put:
-      summary: Reemplaza los datos y cambia el estado de una rutina
-      description: Requiere todos los campos. La rutina solo puede avanzar de pendiente a en_progreso y de en_progreso a completada.
+      operationId: actualizarRutina
+      summary: Actualiza los datos de una rutina sin cambiar su estado
+      description: Requiere título, descripción, días por semana y cliente. Para cambiar el estado use PATCH.
       requestBody:
         required: true
         content:
@@ -147,6 +251,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RespuestaRutina"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
         "400":
           description: ID o JSON no válido
           content:
@@ -155,12 +263,6 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Rutina no encontrada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "409":
-          description: Transición prohibida o cambio concurrente
           content:
             application/json:
               schema:
@@ -178,6 +280,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
     delete:
+      operationId: borrarRutina
       summary: Elimina lógicamente una rutina
       responses:
         "200":
@@ -186,6 +289,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RespuestaMensaje"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
         "400":
           description: ID no válido
           content:
@@ -204,7 +311,61 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /login:
+    post:
+      operationId: iniciarSesion
+      summary: Inicia sesión y entrega un token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CredencialesLogin"
+      responses:
+        "200":
+          description: Credenciales válidas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaToken"
+        "400":
+          description: JSON no válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Usuario o contraseña incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Error al consultar o emitir el token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Error401:
+      description: Falta el token, es inválido o venció
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Error403:
+      description: El token es válido, pero el rol no tiene permiso
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
   parameters:
     ID:
       name: id
@@ -217,6 +378,36 @@ components:
     EstadoRutina:
       type: string
       enum: [pendiente, en_progreso, completada]
+    CredencialesLogin:
+      type: object
+      additionalProperties: false
+      required: [usuario, clave]
+      properties:
+        usuario:
+          type: string
+        clave:
+          type: string
+          format: password
+    RespuestaToken:
+      type: object
+      required: [ok, datos]
+      properties:
+        ok:
+          type: boolean
+          const: true
+        datos:
+          type: object
+          required: [token]
+          properties:
+            token:
+              type: string
+    CambioEstadoRutina:
+      type: object
+      additionalProperties: false
+      required: [estado]
+      properties:
+        estado:
+          $ref: "#/components/schemas/EstadoRutina"
     NuevoCliente:
       type: object
       additionalProperties: false
@@ -253,13 +444,26 @@ components:
           type: integer
           minimum: 1
     ActualizacionRutina:
-      allOf:
-        - $ref: "#/components/schemas/NuevaRutina"
-        - type: object
-          required: [estado]
-          properties:
-            estado:
-              $ref: "#/components/schemas/EstadoRutina"
+      type: object
+      additionalProperties: false
+      required: [titulo, descripcion, dias_semana, cliente_id]
+      properties:
+        titulo:
+          type: string
+          minLength: 1
+        descripcion:
+          type: string
+          minLength: 1
+        dias_semana:
+          type: integer
+          minimum: 1
+          maximum: 7
+        estado:
+          description: Se acepta por compatibilidad, pero PUT no cambia el estado.
+          $ref: "#/components/schemas/EstadoRutina"
+        cliente_id:
+          type: integer
+          minimum: 1
     BaseModel:
       type: object
       properties:
@@ -352,6 +556,17 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Cliente"
+    RespuestaListaRutinas:
+      type: object
+      required: [ok, datos]
+      properties:
+        ok:
+          type: boolean
+          const: true
+        datos:
+          type: array
+          items:
+            $ref: "#/components/schemas/Rutina"
     RespuestaMensaje:
       type: object
       required: [ok, datos]

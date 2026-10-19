@@ -1,0 +1,27 @@
+$kind: http-request
+name: POST Login Cliente
+method: POST
+url: '{{base_url}}/login'
+order: 2000
+auth:
+  type: noauth
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "usuario": "ana",
+      "clave": "ana-2026"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 200", () => pm.response.to.have.status(200));
+      pm.test("Login devuelve token", () => {
+          const json = pm.response.json();
+          pm.expect(json.datos.token).to.be.a("string").and.not.empty;
+          pm.collectionVariables.set("token_cliente", json.datos.token);
+      });

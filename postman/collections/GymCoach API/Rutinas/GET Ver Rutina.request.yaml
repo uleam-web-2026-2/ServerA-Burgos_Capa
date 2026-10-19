@@ -1,6 +1,12 @@
 $kind: http-request
 method: GET
-url: '{{base_url}}/rutinas/1'
+url: '{{base_url}}/rutinas/{{rutina_id}}'
+auth:
+  type: bearer
+  bearer:
+    - key: token
+      value: '{{token_cliente}}'
+      type: string
 order: 5000
 scripts:
   - type: afterResponse
@@ -10,14 +16,14 @@ scripts:
       pm.test("Respuesta es JSON", () => pm.response.to.be.json);
       pm.test("Rutina tiene campos requeridos", () => {
           const json = pm.response.json();
-          pm.expect(json.data).to.have.property("id");
-          pm.expect(json.data).to.have.property("titulo");
-          pm.expect(json.data).to.have.property("descripcion");
-          pm.expect(json.data).to.have.property("dias_semana");
-          pm.expect(json.data).to.have.property("estado");
-          pm.expect(json.data).to.have.property("cliente_id");
+          pm.expect(json.datos).to.have.property("id");
+          pm.expect(json.datos).to.have.property("titulo");
+          pm.expect(json.datos).to.have.property("descripcion");
+          pm.expect(json.datos).to.have.property("dias_semana");
+          pm.expect(json.datos).to.have.property("estado");
+          pm.expect(json.datos).to.have.property("cliente_id");
       });
       pm.test("Estado es válido", () => {
           const json = pm.response.json();
-          pm.expect(["pendiente","en_progreso","completada"]).to.include(json.data.estado);
+          pm.expect(["pendiente","en_progreso","completada"]).to.include(json.datos.estado);
       });

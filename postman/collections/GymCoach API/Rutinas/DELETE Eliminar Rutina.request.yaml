@@ -1,6 +1,6 @@
 $kind: http-request
 method: DELETE
-url: '{{base_url}}/rutinas/1'
+url: '{{base_url}}/rutinas/{{rutina_id}}'
 order: 10000
 scripts:
   - type: afterResponse

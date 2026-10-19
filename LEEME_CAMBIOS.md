@@ -10,6 +10,7 @@ Copiar estos archivos SOBRE el repositorio, respetando las rutas. Después, desd
 En .env: CLAVE_FIRMA con 32 letras y números o más (hoy dice replace-with-a-random-local-secret).
 
 ## Archivos
+
 | Archivo | Qué es |
 | --- | --- |
 | internal/gymcoach/estado.go | NUEVO. Mapa `siguientes` y PATCH /rutinas/{id} (422 prohibida, 200 permitida) |
@@ -27,7 +28,8 @@ En .env: CLAVE_FIRMA con 32 letras y números o más (hoy dice replace-with-a-ra
 | docs/openapi.yaml, docs/api.html | contrato con PATCH, /login, seguridad, 401 y 403 |
 | docs/decisiones.md | el suyo + D1, D2, D3 de la semana 7 (BORRADOR: revisen las razones) |
 
-## Las seis peticiones (crear antes una rutina nueva con luis)
+## Las peticiones principales (crear antes una rutina nueva con luis)
+
 1. GET /clientes, sin token → 401
 2. POST /login con ana / ana-2026 → 200 y token
 3. GET /rutinas/{id}, token de ana → 200
@@ -36,7 +38,10 @@ En .env: CLAVE_FIRMA con 32 letras y números o más (hoy dice replace-with-a-ra
 6. PATCH /rutinas/{otra pendiente} {"estado":"completada"}, token de ana → 422
 Para crear rutinas: POST /login con luis / luis-2026 y POST /rutinas con su token.
 
-## Pendiente (no lo hace este paquete)
-- pruebas.sh y la colección de Postman quedaron obsoletas: ahora piden token y el PUT ya no cambia el estado.
-- docs/hito1_ficha_del_negocio.md (secciones 6 y 7) sigue diciendo que no hay autenticación y que el PUT cambia el estado.
+## Estado actual
+
+- `pruebas.sh`, la colección de Postman y la ficha del Hito 1 ya reflejan autenticación, envoltura `datos` y el cambio de estado solo por PATCH.
+
+## Pendiente de entrega
+
 - Quiten `.env` del commit (git status) y escriban la línea «IA: ...» en el segundo -m.

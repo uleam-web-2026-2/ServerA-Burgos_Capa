@@ -23,11 +23,11 @@ scripts:
       pm.test("Respuesta es JSON", () => pm.response.to.be.json);
       pm.test("Cliente creado tiene id", () => {
           const json = pm.response.json();
-          pm.expect(json).to.have.property("data");
-          pm.expect(json.data).to.have.property("id");
+          pm.expect(json).to.have.property("datos");
+          pm.expect(json.datos).to.have.property("id");
       });
       pm.test("Nombre y correo coinciden", () => {
           const json = pm.response.json();
-          pm.expect(json.data.nombre).to.eql("María Solórzano");
-          pm.expect(json.data.correo).to.eql("maria@example.test");
+          pm.expect(json.datos.nombre).to.eql("María Solórzano");
+          pm.expect(json.datos.correo).to.eql("maria@example.test");
       });

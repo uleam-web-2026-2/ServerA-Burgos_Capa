@@ -11,14 +11,14 @@ scripts:
     code: |-
       pm.test("Status 200", () => pm.response.to.have.status(200));
       pm.test("Respuesta es JSON", () => pm.response.to.be.json);
-      pm.test("Tiene campo data con array", () => {
+      pm.test("Tiene campo datos con array", () => {
           const json = pm.response.json();
-          pm.expect(json).to.have.property("data");
-          pm.expect(json.data).to.be.an("array");
+          pm.expect(json).to.have.property("datos");
+          pm.expect(json.datos).to.be.an("array");
       });
       pm.test("Rutinas filtradas son pendientes", () => {
           const json = pm.response.json();
-          json.data.forEach(cliente => {
+          json.datos.forEach(cliente => {
               if (cliente.rutinas && cliente.rutinas.length > 0) {
                   cliente.rutinas.forEach(r => {
                       pm.expect(r.estado).to.eql("pendiente");

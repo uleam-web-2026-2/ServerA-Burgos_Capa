@@ -8,15 +8,15 @@ scripts:
     code: |-
       pm.test("Status 200", () => pm.response.to.have.status(200));
       pm.test("Respuesta es JSON", () => pm.response.to.be.json);
-      pm.test("Tiene campo data con array", () => {
+        pm.test("Tiene campo datos con array", () => {
           const json = pm.response.json();
-          pm.expect(json).to.have.property("data");
-          pm.expect(json.data).to.be.an("array");
+          pm.expect(json).to.have.property("datos");
+          pm.expect(json.datos).to.be.an("array");
       });
       pm.test("Cada cliente tiene id, nombre, correo, objetivo, entrenador_id", () => {
           const json = pm.response.json();
-          if (json.data.length > 0) {
-              const c = json.data[0];
+          if (json.datos.length > 0) {
+            const c = json.datos[0];
               pm.expect(c).to.have.property("id");
               pm.expect(c).to.have.property("nombre");
               pm.expect(c).to.have.property("correo");

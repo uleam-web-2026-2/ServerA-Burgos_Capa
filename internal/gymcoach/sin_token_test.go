@@ -19,6 +19,7 @@ func TestSinTokenLasRutasProtegidasResponden401(t *testing.T) {
 	protegidas := []struct{ metodo, ruta, cuerpo string }{
 		{"GET", "/clientes", ""},
 		{"POST", "/clientes", `{"nombre":"Ana","correo":"ana@example.test","objetivo":"Fuerza","entrenador_id":1}`},
+		{"GET", "/rutinas", ""},
 		{"POST", "/rutinas", `{"titulo":"Fuerza","descripcion":"Cuerpo completo","dias_semana":3,"cliente_id":1}`},
 		{"GET", "/rutinas/1", ""},
 		{"PUT", "/rutinas/1", `{"titulo":"Fuerza","descripcion":"Cuerpo completo","dias_semana":3,"cliente_id":1}`},

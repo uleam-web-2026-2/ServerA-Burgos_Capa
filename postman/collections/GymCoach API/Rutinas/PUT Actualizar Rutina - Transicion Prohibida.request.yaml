@@ -1,8 +1,8 @@
 $kind: http-request
-name: 'PUT Actualizar Rutina - Transición Prohibida'
+name: 'PUT Ignora Cambio de Estado'
 method: PUT
-url: '{{base_url}}/rutinas/1'
-order: 9000
+url: '{{base_url}}/rutinas/{{rutina_id}}'
+order: 4000
 headers:
   - key: Content-Type
     value: application/json
@@ -20,9 +20,9 @@ scripts:
   - type: afterResponse
     language: text/javascript
     code: |-
-      pm.test("Status 409", () => pm.response.to.have.status(409));
+        pm.test("Status 200", () => pm.response.to.have.status(200));
       pm.test("Respuesta es JSON", () => pm.response.to.be.json);
-      pm.test("Tiene campo error", () => {
+        pm.test("PUT no cambia el estado a completada", () => {
           const json = pm.response.json();
-          pm.expect(json).to.have.property("error");
+          pm.expect(json.datos.estado).to.not.eql("completada");
       });
