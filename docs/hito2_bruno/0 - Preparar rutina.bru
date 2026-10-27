@@ -1,0 +1,36 @@
+meta {
+  name: 0 - Preparar rutina
+  type: http
+  seq: 0
+}
+
+post {
+  url: {{base_url}}/rutinas
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token_entrenador}}
+}
+
+body:json {
+  {
+    "titulo": "Rutina Hito 2",
+    "descripcion": "Registro nuevo para la demostración",
+    "dias_semana": 3,
+    "cliente_id": {{cliente_id}}
+  }
+}
+
+script:post-response {
+  test("La preparación crea una rutina pendiente", function() {
+    expect(res.status).to.equal(201);
+    expect(res.body.datos.estado).to.equal("pendiente");
+  });
+  bru.setEnvVar("rutina_id", res.body.datos.id.toString());
+}

@@ -1,0 +1,17 @@
+meta {
+  name: 1 - GET Rutina Sin Token
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/rutinas/{{rutina_id}}
+  body: none
+  auth: none
+}
+
+script:post-response {
+  test("Sin token responde 401", function() {
+    expect(res.status).to.equal(401);
+  });
+}

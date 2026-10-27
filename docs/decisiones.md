@@ -44,4 +44,19 @@ El taller implementa tokens Bearer y autorización por rol en las rutas. La sesi
 
 **Por qué el negocio no la permite:** el cliente no puede marcar como terminado un plan que todavía no ha empezado. Primero debe pasar a `en_progreso`.
 
-**Qué responde y dónde se valida:** HTTP `422`, código `transicion_prohibida` y mensaje `de pendiente no se puede pasar a completada`. La transición se comprueba en `internal/gymcoach/estado.go`, función `cambiarEstado`, usando el mapa `siguientes`.
+**Qué responde y dónde se valida:** HTTP `422`, código `transicion_prohibida` y mensaje `de pendiente no se puede pasar a completada`. La regla pura se comprueba en `internal/gymcoach/dominio/estado.go`, función `PuedeTransicionar`; no conoce HTTP ni la base de datos. El servicio de aplicación la usa antes de pedir al repositorio que guarde el cambio. El manejador HTTP solo valida la petición, llama al servicio y traduce sus errores a códigos HTTP.
+
+## Semana 8 · estructura
+
+La entidad principal que demostramos es **Rutina**. Para el cambio de estado elegimos una estructura por capas:
+
+| Carpeta | Responsabilidad |
+| --- | --- |
+| `internal/gymcoach/dominio/` | Entidades y reglas del negocio. La máquina de estados no depende de HTTP ni de PostgreSQL. |
+| `internal/gymcoach/aplicacion/` | Coordina las operaciones de rutina y, para el cambio de estado, valida la transición antes de solicitar el cambio. |
+| `internal/gymcoach/repositorio/` | Acceso a PostgreSQL mediante GORM para listar, crear, consultar, actualizar y eliminar rutinas; persiste el cambio de estado sin decidir qué transición permite el negocio. |
+| `internal/gymcoach/` | Adaptador HTTP: registra rutas, valida el JSON y convierte los errores de aplicación en respuestas HTTP. Las rutas de clientes mantienen sus manejadores actuales. |
+
+Elegimos esta separación porque cada parte tiene un motivo distinto para cambiar. Si cambia la máquina de estados, se modifica dominio; si cambia PostgreSQL, el repositorio; si cambia el contrato HTTP, el manejador. En `main.go` se conectan las capas. Todas las rutas de Rutina usan el servicio y el repositorio; las rutas de Cliente no forman parte de la entidad principal demostrada.
+
+Para enseñar el recorrido del `PATCH /rutinas/{id}`, abrir `internal/gymcoach/estado.go` (manejador) y `internal/gymcoach/dominio/estado.go` (regla). La escritura en base de datos queda en `internal/gymcoach/repositorio/rutinas.go`.

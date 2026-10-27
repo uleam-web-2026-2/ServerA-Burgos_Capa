@@ -1,0 +1,6 @@
+{
+  "version": "1",
+  "name": "GymCoach Hito 2",
+  "type": "collection",
+  "ignore": ["node_modules", ".git"]
+}

@@ -1,0 +1,21 @@
+meta {
+  name: 3 - GET Rutina Con Token
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/rutinas/{{rutina_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token_cliente}}
+}
+
+script:post-response {
+  test("Con token la consulta responde 200", function() {
+    expect(res.status).to.equal(200);
+  });
+}

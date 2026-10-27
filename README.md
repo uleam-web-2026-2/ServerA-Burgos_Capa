@@ -83,12 +83,24 @@ Las credenciales `ana` / `ana-2026` y `luis` / `luis-2026` son ficticias y solo 
 - [Guion de diapositivas](docs/hito1_presentacion.md)
 - [Decisiones de arquitectura](docs/decisiones.md)
 
+## Hito 2
+
+- [Hoja de demostración](docs/hito2_hoja.md)
+- [Colección Bruno](docs/hito2_bruno/)
+- [Capturas de respaldo](docs/hito2_capturas/)
+- [Contrato OpenAPI](docs/openapi.yaml), validado con `npx @redocly/cli lint docs/openapi.yaml --format=stylish`.
+
+La guía de `docs/hito2_bruno/` explica cómo preparar los tokens, crear una rutina nueva y guardar su id en `rutina_id`. La secuencia de demostración usa Ana para probar el permiso por rol y el cambio de estado. No reemplaces las capturas por ejemplos: guarda respuestas reales de tu servidor y la salida real de `go test ./...`.
+
 ## Estructura
 
 ```text
 main.go                          → configuración de servidor, PostgreSQL y rutas
 internal/config/                 → carga de variables de entorno
-internal/gymcoach/               → entidades, transiciones, manejadores y pruebas
+internal/gymcoach/               → manejadores HTTP, modelos, migraciones y pruebas
+internal/gymcoach/dominio/        → entidades y reglas de negocio sin HTTP
+internal/gymcoach/aplicacion/     → casos de uso de Rutina
+internal/gymcoach/repositorio/    → persistencia de Rutina con GORM
 internal/respuesta/              → formato JSON compartido para respuestas
 docs/hito1_ficha_del_negocio.md  → ficha del Hito 1
 docs/hito1_addendum.md           → addendum técnico del Hito 1

@@ -1,0 +1,32 @@
+meta {
+  name: 6 - PATCH Transicion Prohibida
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{base_url}}/rutinas/{{rutina_id}}
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token_cliente}}
+}
+
+body:json {
+  {
+    "estado": "pendiente"
+  }
+}
+
+script:post-response {
+  test("No se permite retroceder a pendiente: 422", function() {
+    expect(res.status).to.equal(422);
+    expect(res.body.error.codigo).to.equal("transicion_prohibida");
+  });
+}

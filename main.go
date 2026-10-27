@@ -11,6 +11,8 @@ import (
 
 	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/config"
 	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/gymcoach"
+	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/gymcoach/aplicacion"
+	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/gymcoach/repositorio"
 	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/sesion"
 )
 
@@ -64,7 +66,8 @@ func main() {
 	tokens := sesion.NuevosTokens(cfg.ClaveFirma)
 	login := &sesion.Manejador{DB: db, Tokens: tokens}
 	r.Post("/login", login.Login) // pública: es la puerta para conseguir el token
-	(&gymcoach.Manejador{DB: db}).Rutas(r, tokens)
+	servicioRutinas := aplicacion.NuevoServicioRutinas(&repositorio.Rutinas{DB: db})
+	(&gymcoach.Manejador{DB: db, ServicioRutinas: servicioRutinas}).Rutas(r, tokens)
 
 	servidor := &http.Server{
 		Addr:         ":" + cfg.Puerto,

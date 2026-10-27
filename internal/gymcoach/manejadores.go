@@ -11,12 +11,15 @@ import (
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 
+	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/gymcoach/aplicacion"
+	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/gymcoach/dominio"
 	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/respuesta"
 	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/sesion"
 )
 
 type Manejador struct {
-	DB *gorm.DB
+	DB              *gorm.DB
+	ServicioRutinas *aplicacion.ServicioRutinas
 }
 
 func (m *Manejador) Rutas(r chi.Router, tokens *sesion.Tokens) {
@@ -127,12 +130,12 @@ func (m *Manejador) listarRutinas(w http.ResponseWriter, r *http.Request) {
 			"El filtro de estado de rutina no es válido")
 		return
 	}
-	var rutinas []Rutina
-	query := m.DB.Preload("Cliente").Order("id ASC")
-	if estado != "" {
-		query = query.Where("estado = ?", estado)
+	if m.ServicioRutinas == nil {
+		respuesta.Error(w, http.StatusInternalServerError, "servicio_no_configurado", "No se pudo obtener la lista de rutinas")
+		return
 	}
-	if err := query.Find(&rutinas).Error; err != nil {
+	rutinas, err := m.ServicioRutinas.Listar(r.Context(), estado)
+	if err != nil {
 		respuesta.Error(w, http.StatusInternalServerError, "error_base",
 			"No se pudo obtener la lista de rutinas")
 		return
@@ -161,15 +164,6 @@ func (m *Manejador) crearRutina(w http.ResponseWriter, r *http.Request) {
 		respuesta.Error(w, http.StatusUnprocessableEntity, "dias_semana_invalidos", "dias_semana debe estar entre 1 y 7")
 		return
 	}
-	var cliente Cliente
-	if err := m.DB.First(&cliente, entrada.ClienteID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			respuesta.Error(w, http.StatusUnprocessableEntity, "cliente_invalido", "El cliente indicado no existe")
-			return
-		}
-		respuesta.Error(w, http.StatusInternalServerError, "error_base", "No se pudo validar el cliente")
-		return
-	}
 	rutina := Rutina{
 		Titulo:      entrada.Titulo,
 		Descripcion: entrada.Descripcion,
@@ -177,7 +171,14 @@ func (m *Manejador) crearRutina(w http.ResponseWriter, r *http.Request) {
 		Estado:      "pendiente",
 		ClienteID:   entrada.ClienteID,
 	}
-	if err := m.DB.Create(&rutina).Error; err != nil {
+	if m.ServicioRutinas == nil {
+		respuesta.Error(w, http.StatusInternalServerError, "servicio_no_configurado", "No se pudo guardar la rutina")
+		return
+	}
+	if err := m.ServicioRutinas.Crear(r.Context(), &rutina); errors.Is(err, dominio.ErrClienteInvalido) {
+		respuesta.Error(w, http.StatusUnprocessableEntity, "cliente_invalido", "El cliente indicado no existe")
+		return
+	} else if err != nil {
 		respuesta.Error(w, http.StatusInternalServerError, "error_base", "No se pudo guardar la rutina")
 		return
 	}
@@ -189,9 +190,12 @@ func (m *Manejador) verRutina(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	var rutina Rutina
-	err := m.DB.Preload("Cliente").First(&rutina, id).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	if m.ServicioRutinas == nil {
+		respuesta.Error(w, http.StatusInternalServerError, "servicio_no_configurado", "Error al buscar la rutina")
+		return
+	}
+	rutina, err := m.ServicioRutinas.Obtener(r.Context(), id)
+	if errors.Is(err, dominio.ErrRutinaNoEncontrada) {
 		respuesta.Error(w, http.StatusNotFound, "no_encontrada", "Rutina no encontrada")
 		return
 	}
@@ -207,9 +211,12 @@ func (m *Manejador) actualizarRutina(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	var existente Rutina
-	if err := m.DB.First(&existente, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	if m.ServicioRutinas == nil {
+		respuesta.Error(w, http.StatusInternalServerError, "servicio_no_configurado", "Error al buscar la rutina")
+		return
+	}
+	if _, err := m.ServicioRutinas.Obtener(r.Context(), id); err != nil {
+		if errors.Is(err, dominio.ErrRutinaNoEncontrada) {
 			respuesta.Error(w, http.StatusNotFound, "no_encontrada", "Rutina no encontrada")
 			return
 		}
@@ -237,36 +244,25 @@ func (m *Manejador) actualizarRutina(w http.ResponseWriter, r *http.Request) {
 		respuesta.Error(w, http.StatusUnprocessableEntity, "dias_semana_invalidos", "dias_semana debe estar entre 1 y 7")
 		return
 	}
-	var cliente Cliente
-	if err := m.DB.First(&cliente, entrada.ClienteID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			respuesta.Error(w, http.StatusUnprocessableEntity, "cliente_invalido", "El cliente indicado no existe")
-			return
-		}
-		respuesta.Error(w, http.StatusInternalServerError, "error_base", "No se pudo validar el cliente")
+	actualizada, err := m.ServicioRutinas.Actualizar(r.Context(), id, Rutina{
+		Titulo:      entrada.Titulo,
+		Descripcion: entrada.Descripcion,
+		DiasSemana:  entrada.DiasSemana,
+		ClienteID:   entrada.ClienteID,
+	})
+	if errors.Is(err, dominio.ErrClienteInvalido) {
+		respuesta.Error(w, http.StatusUnprocessableEntity, "cliente_invalido", "El cliente indicado no existe")
 		return
 	}
-	actualizacion := m.DB.Model(&Rutina{}).
-		Where("id = ?", existente.ID).
-		Updates(map[string]any{
-			"titulo":      entrada.Titulo,
-			"descripcion": entrada.Descripcion,
-			"dias_semana": entrada.DiasSemana,
-			"cliente_id":  entrada.ClienteID,
-		})
-	if actualizacion.Error != nil {
-		respuesta.Error(w, http.StatusInternalServerError, "error_base", "No se pudo actualizar la rutina")
-		return
-	}
-	if actualizacion.RowsAffected == 0 {
+	if errors.Is(err, dominio.ErrRutinaNoEncontrada) {
 		respuesta.Error(w, http.StatusNotFound, "no_encontrada", "Rutina no encontrada")
 		return
 	}
-	if err := m.DB.Preload("Cliente").First(&existente, id).Error; err != nil {
-		respuesta.Error(w, http.StatusInternalServerError, "error_base", "No se pudo consultar la rutina actualizada")
+	if err != nil {
+		respuesta.Error(w, http.StatusInternalServerError, "error_base", "No se pudo actualizar la rutina")
 		return
 	}
-	respuesta.Exito(w, http.StatusOK, existente)
+	respuesta.Exito(w, http.StatusOK, actualizada)
 }
 
 func (m *Manejador) borrarRutina(w http.ResponseWriter, r *http.Request) {
@@ -274,12 +270,16 @@ func (m *Manejador) borrarRutina(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	resultado := m.DB.Delete(&Rutina{}, id)
-	if resultado.Error != nil {
+	if m.ServicioRutinas == nil {
+		respuesta.Error(w, http.StatusInternalServerError, "servicio_no_configurado", "No se pudo eliminar la rutina")
+		return
+	}
+	filas, err := m.ServicioRutinas.Eliminar(r.Context(), id)
+	if err != nil {
 		respuesta.Error(w, http.StatusInternalServerError, "error_base", "No se pudo eliminar la rutina")
 		return
 	}
-	if resultado.RowsAffected == 0 {
+	if filas == 0 {
 		respuesta.Error(w, http.StatusNotFound, "no_encontrada", "Rutina no encontrada")
 		return
 	}

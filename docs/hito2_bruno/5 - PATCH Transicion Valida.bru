@@ -1,0 +1,32 @@
+meta {
+  name: 5 - PATCH Transicion Valida
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{base_url}}/rutinas/{{rutina_id}}
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token_cliente}}
+}
+
+body:json {
+  {
+    "estado": "en_progreso"
+  }
+}
+
+script:post-response {
+  test("Ana inicia la rutina: 200", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.datos.estado).to.equal("en_progreso");
+  });
+}

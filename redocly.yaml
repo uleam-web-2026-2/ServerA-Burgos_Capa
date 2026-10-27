@@ -3,5 +3,6 @@
 extends:
   - recommended
 rules:
+  security-defined: error      # toda ruta protegida debe declarar su esquema de seguridad
   info-license: off           # un proyecto de clase no publica licencia
   no-server-example.com: off  # en clase el servidor corre en localhost
