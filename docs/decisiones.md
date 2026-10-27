@@ -40,11 +40,11 @@ El taller implementa tokens Bearer y autorización por rol en las rutas. La sesi
 
 ## Semana 7 · D3 · La transición prohibida
 
-**Transición:** de `pendiente` a `completada`.
+**Transición:** de `en_progreso` a `pendiente`.
 
-**Por qué el negocio no la permite:** el cliente no puede marcar como terminado un plan que todavía no ha empezado. Primero debe pasar a `en_progreso`.
+**Por qué el negocio no la permite:** cuando el cliente ya inició el plan, no puede devolverlo a `pendiente`, porque se perdería el avance registrado. Si necesita reiniciar el trabajo, el entrenador crea una rutina nueva.
 
-**Qué responde y dónde se valida:** HTTP `422`, código `transicion_prohibida` y mensaje `de pendiente no se puede pasar a completada`. La regla pura se comprueba en `internal/gymcoach/dominio/estado.go`, función `PuedeTransicionar`; no conoce HTTP ni la base de datos. El servicio de aplicación la usa antes de pedir al repositorio que guarde el cambio. El manejador HTTP solo valida la petición, llama al servicio y traduce sus errores a códigos HTTP.
+**Qué responde y dónde se valida:** HTTP `422`, código `transicion_prohibida` y mensaje `de en_progreso no se puede pasar a pendiente`. La regla pura se comprueba en `internal/gymcoach/dominio/estado.go`, función `PuedeTransicionar`; no conoce HTTP ni la base de datos. El servicio de aplicación la usa antes de pedir al repositorio que guarde el cambio. El manejador HTTP solo valida la petición, llama al servicio y traduce sus errores a códigos HTTP.
 
 ## Semana 8 · estructura
 

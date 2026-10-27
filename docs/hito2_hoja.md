@@ -20,7 +20,7 @@ Son credenciales ficticias para la demostración local.
 | 5 | La misma transición a `en_progreso` | Token de Ana (cliente) | 200 |
 | 6 | `PATCH /rutinas/{rutina_id}` → `pendiente` | Token de Ana (cliente) | 422 `transicion_prohibida` |
 
-La petición 0 de preparación crea la rutina en estado `pendiente`. Como la petición 5 la cambia a `en_progreso`, la petición 6 prueba que el negocio no permite retroceder a `pendiente`. Antes de la demostración, inicia sesión como Luis con la petición existente `POST Login Entrenador` y guarda el token en `token_entrenador`.
+La petición 0 de preparación crea la rutina en estado `pendiente`. Como la petición 5 la cambia a `en_progreso`, la petición 6 prueba que el negocio no permite devolverla a `pendiente` y perder el avance. Antes de la demostración, inicia sesión como Luis con `preparacion/Login Entrenador.bru`; el token se guarda en `token_entrenador`.
 
 ## 3 · Matriz ruta × rol
 
