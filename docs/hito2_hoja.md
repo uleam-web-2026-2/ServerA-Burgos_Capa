@@ -48,3 +48,49 @@ La petición 0 de preparación crea la rutina en estado `pendiente`. Como la pet
 - [ ] La regla del cambio de estado está en dominio; el manejador no consulta la base directamente.
 - [ ] `docs/decisiones.md` explica la estructura por capas.
 - [ ] El repositorio no contiene contraseñas reales ni el secreto de firma del token.
+
+## 5 · Evidencias
+
+Guarda las capturas reales en `docs/hito2_capturas/` con estos nombres. Al agregarlas, aparecerán en los espacios siguientes:
+
+### Evidencia 1 · GET sin token (401)
+
+Archivo: `01-sin-token.png`
+
+![GET sin token: respuesta 401](hito2_capturas/01-sin-token.png)
+
+### Evidencia 2 · Inicio de sesión de Ana (200)
+
+Archivo: `02-login-cliente.png`
+
+![Inicio de sesión de Ana: respuesta 200 con token](hito2_capturas/02-login-cliente.png)
+
+### Evidencia 3 · GET con token de Ana (200)
+
+Archivo: `03-rutina-con-token.png`
+
+![Consulta de rutina autenticada: respuesta 200](hito2_capturas/03-rutina-con-token.png)
+
+### Evidencia 4 · Entrenador intenta cambiar el estado (403)
+
+Archivo: `04-entrenador-prohibido.png`
+
+![Cambio de estado por entrenador: respuesta 403](hito2_capturas/04-entrenador-prohibido.png)
+
+### Evidencia 5 · Ana cambia el estado válidamente (200)
+
+Archivo: `05-transicion-valida.png`
+
+![Transición válida por Ana: respuesta 200](hito2_capturas/05-transicion-valida.png)
+
+### Evidencia 6 · Transición prohibida (422)
+
+Archivo: `06-transicion-prohibida.png`
+
+![Transición prohibida: respuesta 422](hito2_capturas/06-transicion-prohibida.png)
+
+### Evidencia 7 · Pruebas automatizadas
+
+Archivo: `07-go-test.png`
+
+![Ejecución de go test ./... en verde](hito2_capturas/07-go-test.png)
