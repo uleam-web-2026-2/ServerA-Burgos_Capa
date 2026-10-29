@@ -21,6 +21,10 @@ body:json {
   }
 }
 
+vars:pre-request {
+  base_url: http://localhost:8080
+}
+
 script:post-response {
   test("Login de Luis responde 200 y entrega token", function() {
     expect(res.status).to.equal(200);

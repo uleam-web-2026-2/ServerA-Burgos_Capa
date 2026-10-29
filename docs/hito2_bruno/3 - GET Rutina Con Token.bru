@@ -14,6 +14,11 @@ auth:bearer {
   token: {{token_cliente}}
 }
 
+vars:pre-request {
+  base_url: http://localhost:8080
+  rutina_id: rutina_id
+}
+
 script:post-response {
   test("Con token la consulta responde 200", function() {
     expect(res.status).to.equal(200);
