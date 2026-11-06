@@ -1,0 +1,10 @@
+?   	github.com/uleam-web-2026-2/ServerA-Burgos_Capa	[no test files]
+?   	github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/config	[no test files]
+ok  	github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/gymcoach	(cached)
+ok  	github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/gymcoach/aplicacion	(cached)
+ok  	github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/gymcoach/dominio	(cached)
+ok  	github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/gymcoach/repositorio	(cached)
+?   	github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/gymcoach/repositorio/sqlc	[no test files]
+?   	github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/middleware	[no test files]
+?   	github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/respuesta	[no test files]
+ok  	github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/sesion	(cached)

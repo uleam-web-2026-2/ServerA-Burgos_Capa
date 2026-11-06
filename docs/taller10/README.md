@@ -22,25 +22,20 @@ usarlos. Después se integran ambos trabajos y se repiten las pruebas.
   traducción de error.
 - Subió estos cambios a `origin/taller10`. `go test ./...`, `go vet ./...` y
   `sqlc generate` terminaron correctamente.
+- Contrastó `db/schema.sql` con `\d rutinas`, `\d clientes` y
+  `\d entrenadores` en PostgreSQL 16. Ejecutó las seis peticiones «Antes» con
+  la API base en una base aislada; todos los códigos y transiciones coincidieron
+  con lo esperado.
 
 ### Pendiente de cierre
 
-La verificación de las seis peticiones sigue bloqueada. El PostgreSQL 16 local
-está escuchando en `localhost:8080`, por lo que las peticiones HTTP a ese puerto
-se reinician; la conexión al `localhost:5432` indicado en `.env` no está
-disponible. La autenticación con las credenciales configuradas contra el
-PostgreSQL en `8080` también fue rechazada. Por ello, `db/schema.sql` se armó a
-partir de los modelos del proyecto, pero todavía no se contrastó con `\d
-rutinas`.
-
-La Fase 4 tampoco está completada: cuando la Persona 2 publique sus cambios, la
-Persona 1 debe actualizar `taller10`, disponer de la API y la base de datos,
-repetir las seis peticiones de la [hoja de verificación](./peticiones.md),
-llenar la columna «Después» y guardar la salida real de `go test ./...` en
-`docs/taller10/go_test.txt`.
-
-La columna «Antes» indica el bloqueo observado y no presenta respuestas no
-verificadas como resultados.
+Los cambios DTO de la Persona 2 están en el árbol de trabajo, pero todavía no
+en `origin/taller10`. Como comprobación adicional, la Persona 1 ejecutó las seis
+peticiones contra esa versión local y guardó la salida de `go test ./...` en
+[go_test.txt](./go_test.txt). Estos resultados locales no sustituyen el cierre
+formal de la Fase 4: después de que la Persona 2 publique sus cambios, la
+Persona 1 debe actualizar la rama compartida y repetir la verificación para
+confirmar exactamente el commit publicado.
 
 ## Persona 2 · DTO y capa HTTP/aplicación
 

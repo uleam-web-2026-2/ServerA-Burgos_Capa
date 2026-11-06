@@ -2,26 +2,28 @@
 
 Base: `http://localhost:8080`. Credenciales ficticias del entorno local.
 
-La columna «Antes» corresponde a la línea de base previa a la integración sqlc.
-La columna «Después» se completará en la Fase 4, cuando estén disponibles los
-cambios de DTO de la Persona B.
+«Antes» se ejecutó con el commit base `a756a7c`. «Después» se ejecutó en el
+árbol de trabajo actual con la integración sqlc y los cambios DTO locales de la
+Persona 2, todavía no publicados en `origin/taller10`.
 
 | # | Petición | Resultado esperado | Antes | Después |
 |---|---|---|---|---|
-| 1 | `GET /rutinas/{rutina_id}` sin token | 401 | No ejecutada: la conexión a `localhost:8080` se reinicia | Pendiente (Fase 4) |
-| 2 | `POST /login` con Ana | 200 y token | No ejecutada: la conexión a `localhost:8080` se reinicia | Pendiente (Fase 4) |
-| 3 | `GET /rutinas/{rutina_id}` con token de Ana | 200 | No ejecutada: la conexión a `localhost:8080` se reinicia | Pendiente (Fase 4) |
-| 4 | `PATCH /rutinas/{rutina_id}` a `en_progreso` con token de Luis | 403 | No ejecutada: la conexión a `localhost:8080` se reinicia | Pendiente (Fase 4) |
-| 5 | `PATCH /rutinas/{rutina_id}` a `en_progreso` con token de Ana | 200 | No ejecutada: la conexión a `localhost:8080` se reinicia | Pendiente (Fase 4) |
-| 6 | `PATCH /rutinas/{rutina_id}` a `pendiente` con token de Ana | 422 `transicion_prohibida` | No ejecutada: la conexión a `localhost:8080` se reinicia | Pendiente (Fase 4) |
+| 1 | `GET /rutinas/{rutina_id}` sin token | 401 | 401 | 401 |
+| 2 | `POST /login` con Ana | 200 y token | 200; token recibido | 200; token recibido |
+| 3 | `GET /rutinas/{rutina_id}` con token de Ana | 200 | 200 | 200 |
+| 4 | `PATCH /rutinas/{rutina_id}` a `en_progreso` con token de Luis | 403 | 403 | 403 |
+| 5 | `PATCH /rutinas/{rutina_id}` a `en_progreso` con token de Ana | 200 | 200; estado `en_progreso` | 200; estado `en_progreso` |
+| 6 | `PATCH /rutinas/{rutina_id}` a `pendiente` con token de Ana | 422 `transicion_prohibida` | 422 `transicion_prohibida` | 422 `transicion_prohibida` |
 
-## Bloqueo del entorno
+## Entorno y alcance de la verificación
 
-En la verificación, `localhost:8080` estaba ocupado por el servicio local
-PostgreSQL 16 y reiniciaba las conexiones HTTP. La configuración local de la
-aplicación apunta a `localhost:5432`, donde no había un servicio escuchando.
-La autenticación al PostgreSQL de `localhost:8080` con las credenciales
-configuradas fue rechazada. Por eso las seis peticiones HTTP no se completaron
-y no se registran códigos como si fueran resultados. Tampoco se pudo verificar
-el esquema con `\d rutinas`. Repetir la secuencia cuando la API y la base de
-datos estén disponibles con sus credenciales correctas.
+El PostgreSQL local del equipo usa el puerto `8080`, por lo que las pruebas se
+ejecutaron con un clúster PostgreSQL 16 temporal y aislado en `5432`. La API
+base corrió en `18080`; la API con sqlc y los cambios DTO locales corrió en
+`18081`. Cada secuencia creó una rutina nueva y comprobó estado HTTP y campos
+relevantes de las respuestas. No se imprimieron ni guardaron tokens.
+
+El esquema real se inspeccionó con `\d rutinas`, `\d clientes` y
+`\d entrenadores`; `db/schema.sql` refleja sus columnas, índices y relaciones.
+La Fase 4 oficial se debe repetir después de que la Persona 2 publique sus
+cambios y la Persona 1 actualice la rama compartida.

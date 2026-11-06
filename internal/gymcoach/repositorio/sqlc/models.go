@@ -8,6 +8,26 @@ import (
 	"database/sql"
 )
 
+type Cliente struct {
+	ID           int64
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+	DeletedAt    sql.NullTime
+	Nombre       string
+	Correo       string
+	Objetivo     string
+	EntrenadorID int64
+}
+
+type Entrenadore struct {
+	ID        int64
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+	DeletedAt sql.NullTime
+	Nombre    string
+	Correo    string
+}
+
 type Rutina struct {
 	ID          int64
 	CreatedAt   sql.NullTime
