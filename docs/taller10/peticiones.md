@@ -17,9 +17,11 @@ cambios de DTO de la Persona B.
 
 ## Bloqueo del entorno
 
-En la verificación inicial, `localhost:8080` estaba ocupado por un proceso
-`postgres` y reiniciaba las conexiones HTTP. La configuración local apunta a
-`localhost:5432`, donde no había un servicio escuchando. Por ello no se
-registran códigos de respuesta como si las peticiones se hubieran completado.
-Repetir la secuencia cuando el servidor GymCoach y su base de datos estén
-disponibles.
+En la verificación, `localhost:8080` estaba ocupado por el servicio local
+PostgreSQL 16 y reiniciaba las conexiones HTTP. La configuración local de la
+aplicación apunta a `localhost:5432`, donde no había un servicio escuchando.
+La autenticación al PostgreSQL de `localhost:8080` con las credenciales
+configuradas fue rechazada. Por eso las seis peticiones HTTP no se completaron
+y no se registran códigos como si fueran resultados. Tampoco se pudo verificar
+el esquema con `\d rutinas`. Repetir la secuencia cuando la API y la base de
+datos estén disponibles con sus credenciales correctas.
