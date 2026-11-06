@@ -37,46 +37,81 @@ func NuevoServicioRutinas(repositorio RepositorioRutinas) *ServicioRutinas {
 	return &ServicioRutinas{repositorio: repositorio}
 }
 
-func (s *ServicioRutinas) Listar(ctx context.Context, estado string) ([]dominio.Rutina, error) {
-	return s.repositorio.ListarRutinas(ctx, estado)
+func (s *ServicioRutinas) Listar(ctx context.Context, estado string) ([]RutinaDTO, error) {
+	rutinas, err := s.repositorio.ListarRutinas(ctx, estado)
+	if err != nil {
+		return nil, err
+	}
+	resultado := make([]RutinaDTO, 0, len(rutinas))
+	for _, rutina := range rutinas {
+		resultado = append(resultado, rutinaDTO(rutina))
+	}
+	return resultado, nil
 }
 
-func (s *ServicioRutinas) Crear(ctx context.Context, rutina *dominio.Rutina) error {
-	return s.repositorio.CrearRutina(ctx, rutina)
+func (s *ServicioRutinas) Crear(ctx context.Context, entrada RutinaEntradaDTO) (RutinaDTO, error) {
+	rutina := dominio.Rutina{
+		Titulo:      entrada.Titulo,
+		Descripcion: entrada.Descripcion,
+		DiasSemana:  entrada.DiasSemana,
+		Estado:      "pendiente",
+		ClienteID:   entrada.ClienteID,
+	}
+	if err := s.repositorio.CrearRutina(ctx, &rutina); err != nil {
+		return RutinaDTO{}, err
+	}
+	return rutinaDTO(rutina), nil
 }
 
-func (s *ServicioRutinas) Obtener(ctx context.Context, id uint) (dominio.Rutina, error) {
-	return s.repositorio.ObtenerRutinaConCliente(ctx, id)
+func (s *ServicioRutinas) Obtener(ctx context.Context, id uint) (RutinaDTO, error) {
+	rutina, err := s.repositorio.ObtenerRutinaConCliente(ctx, id)
+	if err != nil {
+		return RutinaDTO{}, err
+	}
+	return rutinaDTO(rutina), nil
 }
 
-func (s *ServicioRutinas) Actualizar(ctx context.Context, id uint, rutina dominio.Rutina) (dominio.Rutina, error) {
-	return s.repositorio.ActualizarRutina(ctx, id, rutina)
+func (s *ServicioRutinas) Actualizar(ctx context.Context, id uint, entrada RutinaEntradaDTO) (RutinaDTO, error) {
+	rutina, err := s.repositorio.ActualizarRutina(ctx, id, dominio.Rutina{
+		Titulo:      entrada.Titulo,
+		Descripcion: entrada.Descripcion,
+		DiasSemana:  entrada.DiasSemana,
+		ClienteID:   entrada.ClienteID,
+	})
+	if err != nil {
+		return RutinaDTO{}, err
+	}
+	return rutinaDTO(rutina), nil
 }
 
 func (s *ServicioRutinas) Eliminar(ctx context.Context, id uint) (int64, error) {
 	return s.repositorio.EliminarRutina(ctx, id)
 }
 
-func (s *ServicioRutinas) Cambiar(ctx context.Context, id uint, nuevoEstado string) (dominio.Rutina, error) {
+func (s *ServicioRutinas) Cambiar(ctx context.Context, id uint, nuevoEstado string) (RutinaDTO, error) {
 	if !dominio.EstadoValido(nuevoEstado) {
-		return dominio.Rutina{}, ErrEstadoInvalido
+		return RutinaDTO{}, ErrEstadoInvalido
 	}
 
 	rutina, err := s.repositorio.ObtenerRutina(ctx, id)
 	if err != nil {
-		return dominio.Rutina{}, err
+		return RutinaDTO{}, err
 	}
 	if !dominio.PuedeTransicionar(rutina.Estado, nuevoEstado) {
-		return dominio.Rutina{}, &TransicionProhibidaError{De: rutina.Estado, A: nuevoEstado}
+		return RutinaDTO{}, &TransicionProhibidaError{De: rutina.Estado, A: nuevoEstado}
 	}
 
 	filas, err := s.repositorio.ActualizarEstado(ctx, id, rutina.Estado, nuevoEstado)
 	if err != nil {
-		return dominio.Rutina{}, err
+		return RutinaDTO{}, err
 	}
 	if filas == 0 {
-		return dominio.Rutina{}, dominio.ErrEstadoModificado
+		return RutinaDTO{}, dominio.ErrEstadoModificado
 	}
 
-	return s.repositorio.ObtenerRutinaConCliente(ctx, id)
+	rutina, err = s.repositorio.ObtenerRutinaConCliente(ctx, id)
+	if err != nil {
+		return RutinaDTO{}, err
+	}
+	return rutinaDTO(rutina), nil
 }

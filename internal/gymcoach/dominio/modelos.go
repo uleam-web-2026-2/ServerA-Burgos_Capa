@@ -36,10 +36,10 @@ type Cliente struct {
 
 type Rutina struct {
 	BaseModel
-	Titulo      string  `json:"titulo" gorm:"not null"`
-	Descripcion string  `json:"descripcion" gorm:"not null"`
-	DiasSemana  int     `json:"dias_semana" gorm:"not null"`
-	Estado      string  `json:"estado" gorm:"not null;default:pendiente"`
-	ClienteID   uint    `json:"cliente_id" gorm:"not null"`
-	Cliente     Cliente `json:"cliente,omitempty" gorm:"foreignKey:ClienteID"`
+	Titulo      string  `gorm:"not null"`
+	Descripcion string  `gorm:"not null"`
+	DiasSemana  int     `gorm:"not null"`
+	Estado      string  `gorm:"not null;default:pendiente"`
+	ClienteID   uint    `gorm:"not null"`
+	Cliente     Cliente `gorm:"foreignKey:ClienteID"`
 }

@@ -144,12 +144,7 @@ func (m *Manejador) listarRutinas(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *Manejador) crearRutina(w http.ResponseWriter, r *http.Request) {
-	var entrada struct {
-		Titulo      string `json:"titulo"`
-		Descripcion string `json:"descripcion"`
-		DiasSemana  int    `json:"dias_semana"`
-		ClienteID   uint   `json:"cliente_id"`
-	}
+	var entrada aplicacion.RutinaEntradaDTO
 	if err := decodificar(r, &entrada); err != nil {
 		respuesta.Error(w, http.StatusBadRequest, "json_invalido", "El cuerpo debe ser un único JSON válido con campos conocidos")
 		return
@@ -164,21 +159,16 @@ func (m *Manejador) crearRutina(w http.ResponseWriter, r *http.Request) {
 		respuesta.Error(w, http.StatusUnprocessableEntity, "dias_semana_invalidos", "dias_semana debe estar entre 1 y 7")
 		return
 	}
-	rutina := Rutina{
-		Titulo:      entrada.Titulo,
-		Descripcion: entrada.Descripcion,
-		DiasSemana:  entrada.DiasSemana,
-		Estado:      "pendiente",
-		ClienteID:   entrada.ClienteID,
-	}
 	if m.ServicioRutinas == nil {
 		respuesta.Error(w, http.StatusInternalServerError, "servicio_no_configurado", "No se pudo guardar la rutina")
 		return
 	}
-	if err := m.ServicioRutinas.Crear(r.Context(), &rutina); errors.Is(err, dominio.ErrClienteInvalido) {
+	rutina, err := m.ServicioRutinas.Crear(r.Context(), entrada)
+	if errors.Is(err, dominio.ErrClienteInvalido) {
 		respuesta.Error(w, http.StatusUnprocessableEntity, "cliente_invalido", "El cliente indicado no existe")
 		return
-	} else if err != nil {
+	}
+	if err != nil {
 		respuesta.Error(w, http.StatusInternalServerError, "error_base", "No se pudo guardar la rutina")
 		return
 	}
@@ -223,13 +213,7 @@ func (m *Manejador) actualizarRutina(w http.ResponseWriter, r *http.Request) {
 		respuesta.Error(w, http.StatusInternalServerError, "error_base", "Error al buscar la rutina")
 		return
 	}
-	var entrada struct {
-		Titulo      string `json:"titulo"`
-		Descripcion string `json:"descripcion"`
-		DiasSemana  int    `json:"dias_semana"`
-		Estado      string `json:"estado"` // se acepta pero se ignora: el estado solo cambia con PATCH
-		ClienteID   uint   `json:"cliente_id"`
-	}
+	var entrada aplicacion.ActualizarRutinaDTO
 	if err := decodificar(r, &entrada); err != nil {
 		respuesta.Error(w, http.StatusBadRequest, "json_invalido", "El cuerpo debe ser un único JSON válido con campos conocidos")
 		return
@@ -244,12 +228,7 @@ func (m *Manejador) actualizarRutina(w http.ResponseWriter, r *http.Request) {
 		respuesta.Error(w, http.StatusUnprocessableEntity, "dias_semana_invalidos", "dias_semana debe estar entre 1 y 7")
 		return
 	}
-	actualizada, err := m.ServicioRutinas.Actualizar(r.Context(), id, Rutina{
-		Titulo:      entrada.Titulo,
-		Descripcion: entrada.Descripcion,
-		DiasSemana:  entrada.DiasSemana,
-		ClienteID:   entrada.ClienteID,
-	})
+	actualizada, err := m.ServicioRutinas.Actualizar(r.Context(), id, entrada.RutinaEntradaDTO)
 	if errors.Is(err, dominio.ErrClienteInvalido) {
 		respuesta.Error(w, http.StatusUnprocessableEntity, "cliente_invalido", "El cliente indicado no existe")
 		return

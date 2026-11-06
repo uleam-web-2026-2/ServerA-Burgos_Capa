@@ -62,6 +62,15 @@ func (r *Rutinas) ActualizarRutina(ctx context.Context, id uint, cambios dominio
 		return dominio.Rutina{}, err
 	}
 
+	var existente dominio.Rutina
+	err = r.DB.WithContext(ctx).First(&existente, id).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return dominio.Rutina{}, dominio.ErrRutinaNoEncontrada
+	}
+	if err != nil {
+		return dominio.Rutina{}, err
+	}
+
 	resultado := r.DB.WithContext(ctx).Model(&dominio.Rutina{}).
 		Where("id = ?", id).
 		Updates(map[string]any{
@@ -72,9 +81,6 @@ func (r *Rutinas) ActualizarRutina(ctx context.Context, id uint, cambios dominio
 		})
 	if resultado.Error != nil {
 		return dominio.Rutina{}, resultado.Error
-	}
-	if resultado.RowsAffected == 0 {
-		return dominio.Rutina{}, dominio.ErrRutinaNoEncontrada
 	}
 	return r.ObtenerRutinaConCliente(ctx, id)
 }
