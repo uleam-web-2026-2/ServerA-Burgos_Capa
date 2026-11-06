@@ -67,12 +67,7 @@ func idDeRuta(w http.ResponseWriter, r *http.Request) (uint, bool) {
 }
 
 func (m *Manejador) crearCliente(w http.ResponseWriter, r *http.Request) {
-	var entrada struct {
-		Nombre       string `json:"nombre"`
-		Correo       string `json:"correo"`
-		Objetivo     string `json:"objetivo"`
-		EntrenadorID uint   `json:"entrenador_id"`
-	}
+	var entrada aplicacion.ClienteEntrada
 	if err := decodificar(r, &entrada); err != nil {
 		respuesta.Error(w, http.StatusBadRequest, "json_invalido", "El cuerpo debe ser un único JSON válido con campos conocidos")
 		return
@@ -93,17 +88,12 @@ func (m *Manejador) crearCliente(w http.ResponseWriter, r *http.Request) {
 		respuesta.Error(w, http.StatusInternalServerError, "error_base", "No se pudo validar el entrenador")
 		return
 	}
-	cliente := Cliente{
-		Nombre:       entrada.Nombre,
-		Correo:       entrada.Correo,
-		Objetivo:     entrada.Objetivo,
-		EntrenadorID: entrada.EntrenadorID,
-	}
+	cliente := entrada.AModelo()
 	if err := m.DB.Create(&cliente).Error; err != nil {
 		respuesta.Error(w, http.StatusUnprocessableEntity, "cliente_no_guardado", "No se pudo guardar el cliente; verifique que el correo no esté registrado")
 		return
 	}
-	respuesta.Exito(w, http.StatusCreated, cliente)
+	respuesta.Exito(w, http.StatusCreated, aplicacion.ClienteSalidaDesdeDominio(cliente))
 }
 
 func (m *Manejador) listarClientes(w http.ResponseWriter, r *http.Request) {
@@ -120,7 +110,11 @@ func (m *Manejador) listarClientes(w http.ResponseWriter, r *http.Request) {
 		respuesta.Error(w, http.StatusInternalServerError, "error_base", "No se pudo obtener la lista de clientes")
 		return
 	}
-	respuesta.Exito(w, http.StatusOK, clientes)
+	respuestaSalida := make([]aplicacion.ClienteSalida, 0, len(clientes))
+	for _, cliente := range clientes {
+		respuestaSalida = append(respuestaSalida, aplicacion.ClienteSalidaDesdeDominio(cliente))
+	}
+	respuesta.Exito(w, http.StatusOK, respuestaSalida)
 }
 
 func (m *Manejador) listarRutinas(w http.ResponseWriter, r *http.Request) {
@@ -144,12 +138,7 @@ func (m *Manejador) listarRutinas(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *Manejador) crearRutina(w http.ResponseWriter, r *http.Request) {
-	var entrada struct {
-		Titulo      string `json:"titulo"`
-		Descripcion string `json:"descripcion"`
-		DiasSemana  int    `json:"dias_semana"`
-		ClienteID   uint   `json:"cliente_id"`
-	}
+	var entrada aplicacion.RutinaEntrada
 	if err := decodificar(r, &entrada); err != nil {
 		respuesta.Error(w, http.StatusBadRequest, "json_invalido", "El cuerpo debe ser un único JSON válido con campos conocidos")
 		return
@@ -164,25 +153,19 @@ func (m *Manejador) crearRutina(w http.ResponseWriter, r *http.Request) {
 		respuesta.Error(w, http.StatusUnprocessableEntity, "dias_semana_invalidos", "dias_semana debe estar entre 1 y 7")
 		return
 	}
-	rutina := Rutina{
-		Titulo:      entrada.Titulo,
-		Descripcion: entrada.Descripcion,
-		DiasSemana:  entrada.DiasSemana,
-		Estado:      "pendiente",
-		ClienteID:   entrada.ClienteID,
-	}
 	if m.ServicioRutinas == nil {
 		respuesta.Error(w, http.StatusInternalServerError, "servicio_no_configurado", "No se pudo guardar la rutina")
 		return
 	}
-	if err := m.ServicioRutinas.Crear(r.Context(), &rutina); errors.Is(err, dominio.ErrClienteInvalido) {
+	if rutina, err := m.ServicioRutinas.Crear(r.Context(), entrada); errors.Is(err, dominio.ErrClienteInvalido) {
 		respuesta.Error(w, http.StatusUnprocessableEntity, "cliente_invalido", "El cliente indicado no existe")
 		return
 	} else if err != nil {
 		respuesta.Error(w, http.StatusInternalServerError, "error_base", "No se pudo guardar la rutina")
 		return
+	} else {
+		respuesta.Exito(w, http.StatusCreated, rutina)
 	}
-	respuesta.Exito(w, http.StatusCreated, rutina)
 }
 
 func (m *Manejador) verRutina(w http.ResponseWriter, r *http.Request) {
@@ -223,13 +206,7 @@ func (m *Manejador) actualizarRutina(w http.ResponseWriter, r *http.Request) {
 		respuesta.Error(w, http.StatusInternalServerError, "error_base", "Error al buscar la rutina")
 		return
 	}
-	var entrada struct {
-		Titulo      string `json:"titulo"`
-		Descripcion string `json:"descripcion"`
-		DiasSemana  int    `json:"dias_semana"`
-		Estado      string `json:"estado"` // se acepta pero se ignora: el estado solo cambia con PATCH
-		ClienteID   uint   `json:"cliente_id"`
-	}
+	var entrada aplicacion.RutinaActualizacion
 	if err := decodificar(r, &entrada); err != nil {
 		respuesta.Error(w, http.StatusBadRequest, "json_invalido", "El cuerpo debe ser un único JSON válido con campos conocidos")
 		return
@@ -244,12 +221,7 @@ func (m *Manejador) actualizarRutina(w http.ResponseWriter, r *http.Request) {
 		respuesta.Error(w, http.StatusUnprocessableEntity, "dias_semana_invalidos", "dias_semana debe estar entre 1 y 7")
 		return
 	}
-	actualizada, err := m.ServicioRutinas.Actualizar(r.Context(), id, Rutina{
-		Titulo:      entrada.Titulo,
-		Descripcion: entrada.Descripcion,
-		DiasSemana:  entrada.DiasSemana,
-		ClienteID:   entrada.ClienteID,
-	})
+	actualizada, err := m.ServicioRutinas.Actualizar(r.Context(), id, entrada)
 	if errors.Is(err, dominio.ErrClienteInvalido) {
 		respuesta.Error(w, http.StatusUnprocessableEntity, "cliente_invalido", "El cliente indicado no existe")
 		return

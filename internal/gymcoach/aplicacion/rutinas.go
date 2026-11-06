@@ -37,46 +37,115 @@ func NuevoServicioRutinas(repositorio RepositorioRutinas) *ServicioRutinas {
 	return &ServicioRutinas{repositorio: repositorio}
 }
 
-func (s *ServicioRutinas) Listar(ctx context.Context, estado string) ([]dominio.Rutina, error) {
-	return s.repositorio.ListarRutinas(ctx, estado)
+func (s *ServicioRutinas) Listar(ctx context.Context, estado string) ([]RutinaSalida, error) {
+	rutinas, err := s.repositorio.ListarRutinas(ctx, estado)
+	if err != nil {
+		return nil, err
+	}
+	respuesta := make([]RutinaSalida, 0, len(rutinas))
+	for _, rutina := range rutinas {
+		respuesta = append(respuesta, RutinaSalidaDesdeDominio(rutina))
+	}
+	return respuesta, nil
 }
 
-func (s *ServicioRutinas) Crear(ctx context.Context, rutina *dominio.Rutina) error {
-	return s.repositorio.CrearRutina(ctx, rutina)
+func (s *ServicioRutinas) Crear(ctx context.Context, entrada any) (RutinaSalida, error) {
+	var rutina dominio.Rutina
+	switch valor := entrada.(type) {
+	case *RutinaEntrada:
+		if valor == nil {
+			return RutinaSalida{}, errors.New("rutina vacía")
+		}
+		rutina = valor.AModelo()
+	case *dominio.Rutina:
+		if valor == nil {
+			return RutinaSalida{}, errors.New("rutina vacía")
+		}
+		rutina = *valor
+	case RutinaEntrada:
+		rutina = valor.AModelo()
+	case RutinaActualizacion:
+		rutina = valor.AModelo()
+	case dominio.Rutina:
+		rutina = valor
+	default:
+		return RutinaSalida{}, errors.New("tipo de rutina no soportado")
+	}
+	if rutina.Estado == "" {
+		rutina.Estado = "pendiente"
+	}
+	if err := s.repositorio.CrearRutina(ctx, &rutina); err != nil {
+		return RutinaSalida{}, err
+	}
+	return RutinaSalidaDesdeDominio(rutina), nil
 }
 
-func (s *ServicioRutinas) Obtener(ctx context.Context, id uint) (dominio.Rutina, error) {
-	return s.repositorio.ObtenerRutinaConCliente(ctx, id)
+func (s *ServicioRutinas) Obtener(ctx context.Context, id uint) (RutinaSalida, error) {
+	rutina, err := s.repositorio.ObtenerRutinaConCliente(ctx, id)
+	if err != nil {
+		return RutinaSalida{}, err
+	}
+	return RutinaSalidaDesdeDominio(rutina), nil
 }
 
-func (s *ServicioRutinas) Actualizar(ctx context.Context, id uint, rutina dominio.Rutina) (dominio.Rutina, error) {
-	return s.repositorio.ActualizarRutina(ctx, id, rutina)
+func (s *ServicioRutinas) Actualizar(ctx context.Context, id uint, entrada any) (RutinaSalida, error) {
+	var cambios dominio.Rutina
+	switch valor := entrada.(type) {
+	case *RutinaEntrada:
+		if valor == nil {
+			return RutinaSalida{}, errors.New("rutina vacía")
+		}
+		cambios = valor.AModelo()
+	case *dominio.Rutina:
+		if valor == nil {
+			return RutinaSalida{}, errors.New("rutina vacía")
+		}
+		cambios = *valor
+	case RutinaEntrada:
+		cambios = valor.AModelo()
+	case RutinaActualizacion:
+		cambios = valor.AModelo()
+	case dominio.Rutina:
+		cambios = valor
+	default:
+		return RutinaSalida{}, errors.New("tipo de rutina no soportado")
+	}
+
+	rutina, err := s.repositorio.ActualizarRutina(ctx, id, cambios)
+	if err != nil {
+		return RutinaSalida{}, err
+	}
+	return RutinaSalidaDesdeDominio(rutina), nil
 }
 
 func (s *ServicioRutinas) Eliminar(ctx context.Context, id uint) (int64, error) {
 	return s.repositorio.EliminarRutina(ctx, id)
 }
 
-func (s *ServicioRutinas) Cambiar(ctx context.Context, id uint, nuevoEstado string) (dominio.Rutina, error) {
+func (s *ServicioRutinas) Cambiar(ctx context.Context, id uint, nuevoEstado string) (RutinaSalida, error) {
 	if !dominio.EstadoValido(nuevoEstado) {
-		return dominio.Rutina{}, ErrEstadoInvalido
+		return RutinaSalida{}, ErrEstadoInvalido
 	}
 
 	rutina, err := s.repositorio.ObtenerRutina(ctx, id)
 	if err != nil {
-		return dominio.Rutina{}, err
+		return RutinaSalida{}, err
 	}
 	if !dominio.PuedeTransicionar(rutina.Estado, nuevoEstado) {
-		return dominio.Rutina{}, &TransicionProhibidaError{De: rutina.Estado, A: nuevoEstado}
+		return RutinaSalida{}, &TransicionProhibidaError{De: rutina.Estado, A: nuevoEstado}
 	}
 
 	filas, err := s.repositorio.ActualizarEstado(ctx, id, rutina.Estado, nuevoEstado)
 	if err != nil {
-		return dominio.Rutina{}, err
+		return RutinaSalida{}, err
 	}
 	if filas == 0 {
-		return dominio.Rutina{}, dominio.ErrEstadoModificado
+		return RutinaSalida{}, dominio.ErrEstadoModificado
 	}
 
-	return s.repositorio.ObtenerRutinaConCliente(ctx, id)
+	actualizada, err := s.repositorio.ObtenerRutinaConCliente(ctx, id)
+	if err != nil {
+		return RutinaSalida{}, err
+	}
+	return RutinaSalidaDesdeDominio(actualizada), nil
 }
