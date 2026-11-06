@@ -1,0 +1,11 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "db/consultas.sql"
+    schema: "db/schema.sql"
+    gen:
+      go:
+        package: "sqlc"
+        out: "internal/gymcoach/repositorio/sqlc"
+        sql_package: "database/sql"
+        emit_interface: true

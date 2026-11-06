@@ -13,6 +13,7 @@ import (
 	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/gymcoach"
 	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/gymcoach/aplicacion"
 	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/gymcoach/repositorio"
+	consultassqlc "github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/gymcoach/repositorio/sqlc"
 	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/sesion"
 )
 
@@ -25,6 +26,10 @@ func main() {
 	db, err := gorm.Open(postgres.Open(cfg.DatabaseURL), &gorm.Config{})
 	if err != nil {
 		log.Fatal("no se pudo conectar: ", err)
+	}
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatal("no se pudo acceder a la conexión SQL: ", err)
 	}
 
 	if err := db.AutoMigrate(&gymcoach.Entrenador{}); err != nil {
@@ -66,7 +71,11 @@ func main() {
 	tokens := sesion.NuevosTokens(cfg.ClaveFirma)
 	login := &sesion.Manejador{DB: db, Tokens: tokens}
 	r.Post("/login", login.Login) // pública: es la puerta para conseguir el token
-	servicioRutinas := aplicacion.NuevoServicioRutinas(&repositorio.Rutinas{DB: db})
+	repositorioRutinas := repositorio.NuevoRutinasSqlc(
+		&repositorio.Rutinas{DB: db},
+		consultassqlc.New(sqlDB),
+	)
+	servicioRutinas := aplicacion.NuevoServicioRutinas(repositorioRutinas)
 	(&gymcoach.Manejador{DB: db, ServicioRutinas: servicioRutinas}).Rutas(r, tokens)
 
 	servidor := &http.Server{
