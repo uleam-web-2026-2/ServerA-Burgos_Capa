@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/gymcoach/aplicacion"
 )
 
 func enrutadorDePrueba() http.Handler { return enrutadorCon(rolDePrueba) }
@@ -30,6 +32,16 @@ func TestCrearRutinaValidaDatosAntesDeAccederABase(t *testing.T) {
 				t.Fatalf("se esperaba %d y llegó %d con cuerpo %s", caso.codigo, rec.Code, rec.Body.String())
 			}
 		})
+	}
+}
+
+func TestActualizarRutinaRechazaEstadoEnElCuerpoDelPut(t *testing.T) {
+	req := httptest.NewRequest(http.MethodPut, "/rutinas/1", strings.NewReader(
+		`{"titulo":"Fuerza","descripcion":"Rutina","dias_semana":3,"estado":"completada","cliente_id":1}`,
+	))
+	var entrada aplicacion.RutinaActualizacion
+	if err := decodificar(req, &entrada); err == nil {
+		t.Fatal("el DTO de actualización no debe aceptar el campo estado")
 	}
 }
 

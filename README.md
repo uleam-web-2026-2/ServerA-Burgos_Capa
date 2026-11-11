@@ -29,6 +29,23 @@ go run .
 
 El servidor escucha en `http://localhost:8080`, crea las tablas de entrenadores, clientes, rutinas y usuarios, y carga datos ficticios de ejemplo.
 
+### Variables de entorno
+
+La aplicación carga las variables de `.env` al iniciar. Configure:
+
+| Variable | Propósito | Valor local de referencia |
+| --- | --- | --- |
+| `DATABASE_URL` | Conexión a PostgreSQL. | `postgres://usuario:contraseña@localhost:5432/gymcoach?sslmode=disable` |
+| `CLAVE_FIRMA` | Secreto para firmar los tokens de sesión. | Use un valor aleatorio propio; no publique el valor real. |
+| `PUERTO` | Puerto HTTP de la API. | `8080` si no se define. |
+| `TIEMPO_ESPERA_SEGUNDOS` | Tiempo máximo de espera de las peticiones. | `5` si no se define. |
+
+PostgreSQL debe estar iniciado y accesible en el puerto indicado por
+`DATABASE_URL` antes de ejecutar `go run .`. Si la conexión falla, revise el
+servicio de PostgreSQL, el nombre de la base, el usuario, la contraseña y el
+puerto. No comparta ni suba `.env`; el archivo de ejemplo no debe contener
+credenciales reales.
+
 Con Docker puede iniciar PostgreSQL así:
 
 ```bash
@@ -57,6 +74,26 @@ Todas las respuestas JSON correctas usan la envoltura `ok` y `datos`; los errore
 
 La secuencia permitida es `pendiente → en_progreso → completada`. Para probar el login localmente, se crean los usuarios ficticios `ana` / `ana-2026` (cliente) y `luis` / `luis-2026` (entrenador). La autorización comprueba el rol, pero todavía no vincula cada usuario con sus propios registros; no publique la API ni la use con datos personales reales.
 
+Las respuestas de rutinas y clientes usan DTOs de la API, no serializan los
+modelos completos de GORM ni incluyen sus marcas de tiempo internas. La ruta
+`GET /clientes` incluye los datos del entrenador y una lista de rutinas;
+`PUT /rutinas/{id}` no acepta `estado` (use `PATCH` para cambiarlo).
+
+## Transacciones de base de datos
+
+La migración de datos antiguos se ejecuta dentro de una transacción GORM en
+`internal/gymcoach/migracion.go`. La preparación de clientes y rutinas —incluidos
+los valores predeterminados y las relaciones que falten— se confirma en conjunto
+si todas las operaciones terminan correctamente. Si una operación falla, se
+devuelve el error y PostgreSQL revierte los cambios de esa migración.
+
+El cambio de estado de una rutina usa una estrategia distinta: sqlc ejecuta un
+`UPDATE` atómico condicionado por el estado actual (`estado = estado_actual`) y
+por la rutina no eliminada. Así se detecta si otra petición modificó el estado
+entre la lectura y la escritura; si no se actualiza ninguna fila, el servicio
+responde con conflicto en lugar de sobrescribir el cambio concurrente. Esta
+operación no envuelve la lectura y la escritura en una transacción explícita.
+
 ## Pruebas
 
 ```bash
@@ -68,9 +105,12 @@ El script `pruebas.sh` ejecuta comprobaciones contra `localhost:8080`, inicia se
 Para validar y regenerar la documentación del contrato:
 
 ```bash
-npx @redocly/cli lint docs/openapi.yaml --format=stylish
-npx @redocly/cli build-docs docs/openapi.yaml -o docs/api.html
+npx @redocly/cli@1.34.24 lint docs/openapi.yaml --format=stylish
+npx @redocly/cli@1.34.24 build-docs docs/openapi.yaml -o docs/api.html
 ```
+
+Se fija la versión de Redocly CLI para que la documentación generada conserve
+el renderizador Redoc 2 usado por `docs/api.html`.
 
 Las credenciales `ana` / `ana-2026` y `luis` / `luis-2026` son ficticias y solo sirven para pruebas locales.
 
@@ -88,7 +128,7 @@ Las credenciales `ana` / `ana-2026` y `luis` / `luis-2026` son ficticias y solo 
 - [Hoja de demostración](docs/hito2_hoja.md)
 - [Colección Bruno](docs/hito2_bruno/)
 - [Capturas de respaldo](docs/hito2_capturas/)
-- [Contrato OpenAPI](docs/openapi.yaml), validado con `npx @redocly/cli lint docs/openapi.yaml --format=stylish`.
+- [Contrato OpenAPI](docs/openapi.yaml), validado con Redocly CLI 1.34.24.
 
 La guía de `docs/hito2_bruno/` explica cómo preparar los tokens, crear una rutina nueva y guardar su id en `rutina_id`. La secuencia de demostración usa Ana para probar el permiso por rol y el cambio de estado. No reemplaces las capturas por ejemplos: guarda respuestas reales de tu servidor y la salida real de `go test ./...`.
 
@@ -99,8 +139,9 @@ main.go                          → configuración de servidor, PostgreSQL y ru
 internal/config/                 → carga de variables de entorno
 internal/gymcoach/               → manejadores HTTP, modelos, migraciones y pruebas
 internal/gymcoach/dominio/        → entidades y reglas de negocio sin HTTP
-internal/gymcoach/aplicacion/     → casos de uso de Rutina
-internal/gymcoach/repositorio/    → persistencia de Rutina con GORM
+internal/gymcoach/aplicacion/     → casos de uso y DTOs de la API
+internal/gymcoach/repositorio/    → persistencia GORM/sqlc de Rutinas
+db/                               → esquema y consultas de sqlc
 internal/respuesta/              → formato JSON compartido para respuestas
 docs/hito1_ficha_del_negocio.md  → ficha del Hito 1
 docs/hito1_addendum.md           → addendum técnico del Hito 1

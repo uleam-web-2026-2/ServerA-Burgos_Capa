@@ -2,9 +2,10 @@
 
 Base: `http://localhost:8080`. Credenciales ficticias del entorno local.
 
-«Antes» se ejecutó con el commit base `a756a7c`. «Después» se ejecutó en el
-árbol de trabajo actual con la integración sqlc y los cambios DTO locales de la
-Persona 2, todavía no publicados en `origin/taller10`.
+«Antes» se ejecutó con el commit base `a756a7c`. Los resultados «Después» son
+del registro de verificación previo con sqlc y una versión anterior de los
+cambios DTO; no representan una repetición de las seis peticiones contra los
+últimos ajustes de DTO y OpenAPI.
 
 | # | Petición                                                          | Resultado esperado           | Antes                        | Después                     |
 | - | ------------------------------------------------------------------ | ---------------------------- | ---------------------------- | ---------------------------- |
@@ -25,18 +26,18 @@ relevantes de las respuestas. No se imprimieron ni guardaron tokens.
 
 El esquema real se inspeccionó con `\d rutinas`, `\d clientes` y
 `\d entrenadores`; `db/schema.sql` refleja sus columnas, índices y relaciones.
-La Fase 4 oficial se debe repetir después de que la Persona 2 publique sus
-cambios y la Persona 1 actualice la rama compartida.
+La Fase 4 debe repetirse con PostgreSQL disponible contra la revisión exacta que
+se entregará, después de integrar y publicar los cambios finales.
 
-Verificación final de cierre con la refactorización DTO de la Persona 2:
+## Validaciones de los últimos cambios
 
-- `go test ./...` se ejecutó correctamente y no presentó fallos en la
-  integración del repositorio sqlc con la capa de aplicación.
-- Las seis peticiones de la Fase 4 mantuvieron los resultados esperados en el
-  entorno de verificación: códigos HTTP, transiciones de estado y mensajes de
-  error coherentes con la especificación.
-- La refactorización de DTO quedó validada: los handlers decodifican entradas y
-  responden con DTOs, sin exponer los modelos de dominio ni los campos internos
-  de GORM al contrato JSON de la API.
-- La integración entre sqlc y la capa HTTP/aplicación quedó confirmada como
-  estable y compatible con la lógica de negocio actual.
+- `go test ./...` finalizó correctamente después de los últimos cambios.
+- `npx @redocly/cli@1.34.24 lint docs/openapi.yaml --format=stylish` validó el contrato.
+- Se regeneró `docs/api.html` con
+  `npx @redocly/cli@1.34.24 build-docs docs/openapi.yaml -o docs/api.html`.
+- Las pruebas automatizadas verifican la conversión del DTO específico de lista
+  de clientes, la omisión de campos internos y el rechazo de `estado` en el
+  cuerpo de actualización `PUT`.
+
+La repetición manual de las seis peticiones contra PostgreSQL queda pendiente
+para confirmar el comportamiento de la API desplegada con esta revisión final.

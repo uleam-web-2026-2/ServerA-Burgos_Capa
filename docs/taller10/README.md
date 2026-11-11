@@ -27,51 +27,53 @@ usarlos. Después se integran ambos trabajos y se repiten las pruebas.
   la API base en una base aislada; todos los códigos y transiciones coincidieron
   con lo esperado.
 
-### Cierre de la fase
+### Verificación previa a los últimos ajustes
 
-La refactorización DTO de la Persona 2 quedó integrada y validada en el árbol de
-trabajo actual. Como comprobación adicional, la Persona 1 ejecutó las seis
-peticiones contra la versión local con los cambios DTO y guardó la salida de
-`go test ./...` en [go_test.txt](./go_test.txt). En la versión final del taller,
-la parte de DTO quedó cerrada y la verificación de la API con los cambios
-recientes se considera completada.
+La Persona 1 registró seis peticiones contra una versión local anterior con
+sqlc y los primeros cambios DTO; la salida de `go test ./...` quedó en
+[go_test.txt](./go_test.txt). Esos resultados son un antecedente de verificación,
+no sustituyen la repetición de Fase 4 contra los últimos cambios descritos en
+este documento.
 
 ## Persona 2 · DTO y capa HTTP/aplicación
 
-Trabajo completado y validado.
+Implementación completada localmente y validada con pruebas automatizadas.
 
 1. Se definieron los DTO de entrada y salida de clientes y rutinas en
    `internal/gymcoach/aplicacion/dtos.go`. Los DTO de salida exponen solo los
    campos públicos de la API y no serializan el modelo completo de GORM.
+   La lista de clientes tiene un DTO específico con sus relaciones de
+   entrenador y rutinas.
 2. Se adaptó `internal/gymcoach/aplicacion/rutinas.go` para que los casos de uso
    reciban DTO de entrada y devuelvan DTO de salida, centralizando la
    conversión desde y hacia el dominio.
 3. Se adaptó `internal/gymcoach/manejadores.go` para decodificar los DTO de
    entrada y responder con DTOs de salida, sin cambiar las rutas, códigos HTTP,
-   validaciones ni formato JSON ya acordados.
+   validaciones ni envoltura JSON ya acordadas. El DTO del `PUT` no incluye
+   `estado`; ese campo se cambia exclusivamente mediante `PATCH`.
 4. Se evitó que los modelos del dominio fueran el contrato JSON de la API,
    manteniendo en dominio solo los campos y reglas de negocio necesarias.
 5. Se añadieron pruebas para la conversión y para verificar que las respuestas
    JSON mantienen la forma esperada, evitando fugas de campos internos.
-6. Se ejecutó `gofmt` y `go test ./...` con resultado correcto, confirmando
-   que el cambio funciona junto con el repositorio sqlc ya integrado.
+6. Se ejecutó `gofmt` y `go test ./...` con resultado correcto. También se
+   actualizó `docs/openapi.yaml`, se validó con Redocly y se regeneró
+   `docs/api.html`.
+7. Se documentó la sección de transacciones: la migración de datos antiguos
+   usa una transacción GORM; el cambio de estado usa una actualización atómica
+   condicional con sqlc para manejar concurrencia.
 
-Estado final: la refactorización de DTO de la Persona 2 quedó completada,
-validada y consistente con el repositorio actual. La revisión del repositorio
-GORM en `repositorio/rutinas.go` quedó subordinada a la necesidad real del
-proyecto: si permanece, debe seguir siendo compatible con el adaptador
-`RutinasSqlc`, pero la tarea principal de DTO y capa HTTP quedó cerrada con la
-integración del servicio y los handlers actualizados.
+Estado: la implementación de Persona 2 quedó completada en el árbol de trabajo.
+La verificación manual de las seis peticiones de Fase 4 debe repetirse contra
+esta revisión junto con PostgreSQL antes de declarar cerrada la integración
+publicada. El repositorio conserva GORM para las operaciones no cubiertas por
+sqlc y usa el adaptador `RutinasSqlc` donde corresponde.
 
 ## Integración entre ambas personas
 
-1. La Persona 2 terminó, probó y dejó cerrada la refactorización de DTO en el
-   árbol de trabajo del taller.
-2. La Persona 1 integró y revisó que no se hubieran perdido archivos ni cambios
-   de ninguna de las dos partes.
-3. La Persona 1 ejecutó la verificación final de la [Fase 4](./peticiones.md)
-   con el servidor y PostgreSQL disponibles y registró los resultados relevantes
-   en `go_test.txt`.
+1. La Persona 2 terminó la refactorización DTO, las pruebas automatizadas y la
+   actualización de la documentación en el árbol de trabajo.
+2. Falta integrar/publicar esta revisión en `taller10` y repetir la verificación
+   de la [Fase 4](./peticiones.md) contra la versión exacta que se entregará.
 
-En este punto, la división del trabajo queda cerrada y la parte correspondiente
-al trabajo de la Persona 2 queda marcada como completada.
+La implementación de la Persona 2 está completa; el cierre de integración queda
+sujeto a la verificación manual final en el entorno con PostgreSQL.

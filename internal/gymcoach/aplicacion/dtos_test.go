@@ -85,6 +85,46 @@ func TestRutinaSalidaDesdeDominioExponeSoloCamposDeLaAPI(t *testing.T) {
 	}
 }
 
+func TestClienteListaSalidaIncluyeRelacionesSinCamposInternos(t *testing.T) {
+	cliente := dominio.Cliente{
+		BaseModel:    dominio.BaseModel{ID: 12, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		Nombre:       "Ana",
+		Correo:       "ana@example.com",
+		Objetivo:     "Ganar masa muscular",
+		EntrenadorID: 3,
+		Entrenador: dominio.Entrenador{
+			BaseModel: dominio.BaseModel{ID: 3, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+			Nombre:    "Luis",
+			Correo:    "luis@example.com",
+		},
+		Rutinas: []dominio.Rutina{{
+			BaseModel:   dominio.BaseModel{ID: 8, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+			Titulo:      "Fuerza",
+			Descripcion: "Rutina semanal",
+			DiasSemana:  4,
+			Estado:      "pendiente",
+			ClienteID:   12,
+		}},
+	}
+
+	salida := ClienteListaSalidaDesdeDominio(cliente)
+	serializado, err := json.Marshal(salida)
+	if err != nil {
+		t.Fatalf("no se pudo serializar el DTO de lista de clientes: %v", err)
+	}
+	jsonStr := string(serializado)
+	for _, campo := range []string{"created_at", "updated_at", "deleted_at", "CreatedAt", "UpdatedAt"} {
+		if strings.Contains(jsonStr, campo) {
+			t.Fatalf("el DTO no debe exponer campos del modelo: %s -> %s", campo, jsonStr)
+		}
+	}
+	for _, campo := range []string{`"entrenador":{"id":3`, `"rutinas":[{"id":8`, `"cliente_id":12`} {
+		if !strings.Contains(jsonStr, campo) {
+			t.Fatalf("el DTO de lista debe incluir %s: %s", campo, jsonStr)
+		}
+	}
+}
+
 func TestServicioObtenerConvierteDominioEnDTO(t *testing.T) {
 	servicio := NuevoServicioRutinas(&repositorioDtoPrueba{})
 	rutina, err := servicio.Obtener(context.Background(), 8)

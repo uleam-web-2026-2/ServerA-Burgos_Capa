@@ -110,9 +110,9 @@ func (m *Manejador) listarClientes(w http.ResponseWriter, r *http.Request) {
 		respuesta.Error(w, http.StatusInternalServerError, "error_base", "No se pudo obtener la lista de clientes")
 		return
 	}
-	respuestaSalida := make([]aplicacion.ClienteSalida, 0, len(clientes))
+	respuestaSalida := make([]aplicacion.ClienteListaSalida, 0, len(clientes))
 	for _, cliente := range clientes {
-		respuestaSalida = append(respuestaSalida, aplicacion.ClienteSalidaDesdeDominio(cliente))
+		respuestaSalida = append(respuestaSalida, aplicacion.ClienteListaSalidaDesdeDominio(cliente))
 	}
 	respuesta.Exito(w, http.StatusOK, respuestaSalida)
 }

@@ -17,6 +17,27 @@ type ClienteSalida struct {
 	EntrenadorID uint   `json:"entrenador_id"`
 }
 
+type EntrenadorSalida struct {
+	ID     uint   `json:"id"`
+	Nombre string `json:"nombre"`
+	Correo string `json:"correo"`
+}
+
+type RutinaDeClienteSalida struct {
+	ID          uint   `json:"id"`
+	Titulo      string `json:"titulo"`
+	Descripcion string `json:"descripcion"`
+	DiasSemana  int    `json:"dias_semana"`
+	Estado      string `json:"estado"`
+	ClienteID   uint   `json:"cliente_id"`
+}
+
+type ClienteListaSalida struct {
+	ClienteSalida
+	Entrenador *EntrenadorSalida       `json:"entrenador,omitempty"`
+	Rutinas    []RutinaDeClienteSalida `json:"rutinas"`
+}
+
 func ClienteSalidaDesdeDominio(cliente dominio.Cliente) ClienteSalida {
 	return ClienteSalida{
 		ID:           cliente.ID,
@@ -25,6 +46,31 @@ func ClienteSalidaDesdeDominio(cliente dominio.Cliente) ClienteSalida {
 		Objetivo:     cliente.Objetivo,
 		EntrenadorID: cliente.EntrenadorID,
 	}
+}
+
+func ClienteListaSalidaDesdeDominio(cliente dominio.Cliente) ClienteListaSalida {
+	salida := ClienteListaSalida{
+		ClienteSalida: ClienteSalidaDesdeDominio(cliente),
+		Rutinas:       make([]RutinaDeClienteSalida, 0, len(cliente.Rutinas)),
+	}
+	if cliente.Entrenador.ID != 0 {
+		salida.Entrenador = &EntrenadorSalida{
+			ID:     cliente.Entrenador.ID,
+			Nombre: cliente.Entrenador.Nombre,
+			Correo: cliente.Entrenador.Correo,
+		}
+	}
+	for _, rutina := range cliente.Rutinas {
+		salida.Rutinas = append(salida.Rutinas, RutinaDeClienteSalida{
+			ID:          rutina.ID,
+			Titulo:      rutina.Titulo,
+			Descripcion: rutina.Descripcion,
+			DiasSemana:  rutina.DiasSemana,
+			Estado:      rutina.Estado,
+			ClienteID:   rutina.ClienteID,
+		})
+	}
+	return salida
 }
 
 func (c ClienteEntrada) AModelo() dominio.Cliente {
@@ -47,7 +93,6 @@ type RutinaActualizacion struct {
 	Titulo      string `json:"titulo"`
 	Descripcion string `json:"descripcion"`
 	DiasSemana  int    `json:"dias_semana"`
-	Estado      string `json:"estado,omitempty"`
 	ClienteID   uint   `json:"cliente_id"`
 }
 

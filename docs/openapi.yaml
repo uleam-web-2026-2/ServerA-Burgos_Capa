@@ -201,7 +201,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/RespuestaRutina"
         "400":
-          description: ID o JSON no válido
+          description: ID o JSON no válido, incluidos campos no permitidos como estado
           content:
             application/json:
               schema:
@@ -458,75 +458,99 @@ components:
           type: integer
           minimum: 1
           maximum: 7
-        estado:
-          description: Se acepta por compatibilidad, pero PUT no cambia el estado.
-          $ref: "#/components/schemas/EstadoRutina"
         cliente_id:
           type: integer
           minimum: 1
-    BaseModel:
+    Entrenador:
       type: object
+      additionalProperties: false
+      required: [id, nombre, correo]
       properties:
         id:
           type: integer
-        created_at:
+        nombre:
           type: string
-          format: date-time
-        updated_at:
+        correo:
           type: string
-          format: date-time
-    Entrenador:
-      allOf:
-        - $ref: "#/components/schemas/BaseModel"
-        - type: object
-          required: [nombre, correo]
-          properties:
-            nombre:
-              type: string
-            correo:
-              type: string
-              format: email
+          format: email
     Cliente:
-      allOf:
-        - $ref: "#/components/schemas/BaseModel"
-        - type: object
-          required: [nombre, correo, objetivo, entrenador_id]
-          properties:
-            nombre:
-              type: string
-            correo:
-              type: string
-              format: email
-            objetivo:
-              type: string
-            entrenador_id:
-              type: integer
-            entrenador:
-              $ref: "#/components/schemas/Entrenador"
-            rutinas:
-              type: array
-              items:
-                $ref: "#/components/schemas/Rutina"
+      type: object
+      additionalProperties: false
+      required: [id, nombre, correo, objetivo, entrenador_id]
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        correo:
+          type: string
+          format: email
+        objetivo:
+          type: string
+        entrenador_id:
+          type: integer
+    RutinaDeCliente:
+      type: object
+      additionalProperties: false
+      required: [id, titulo, descripcion, dias_semana, estado, cliente_id]
+      properties:
+        id:
+          type: integer
+        titulo:
+          type: string
+        descripcion:
+          type: string
+        dias_semana:
+          type: integer
+          minimum: 1
+          maximum: 7
+        estado:
+          $ref: "#/components/schemas/EstadoRutina"
+        cliente_id:
+          type: integer
+    ClienteListado:
+      type: object
+      additionalProperties: false
+      required: [id, nombre, correo, objetivo, entrenador_id, rutinas]
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        correo:
+          type: string
+          format: email
+        objetivo:
+          type: string
+        entrenador_id:
+          type: integer
+        entrenador:
+          $ref: "#/components/schemas/Entrenador"
+        rutinas:
+          type: array
+          items:
+            $ref: "#/components/schemas/RutinaDeCliente"
     Rutina:
-      allOf:
-        - $ref: "#/components/schemas/BaseModel"
-        - type: object
-          required: [titulo, descripcion, dias_semana, estado, cliente_id]
-          properties:
-            titulo:
-              type: string
-            descripcion:
-              type: string
-            dias_semana:
-              type: integer
-              minimum: 1
-              maximum: 7
-            estado:
-              $ref: "#/components/schemas/EstadoRutina"
-            cliente_id:
-              type: integer
-            cliente:
-              $ref: "#/components/schemas/Cliente"
+      type: object
+      additionalProperties: false
+      required: [id, titulo, descripcion, dias_semana, estado, cliente_id]
+      properties:
+        id:
+          type: integer
+        titulo:
+          type: string
+        descripcion:
+          type: string
+        dias_semana:
+          type: integer
+          minimum: 1
+          maximum: 7
+        estado:
+          $ref: "#/components/schemas/EstadoRutina"
+        cliente_id:
+          type: integer
+        cliente:
+          $ref: "#/components/schemas/Cliente"
     RespuestaCliente:
       type: object
       required: [ok, datos]
@@ -555,7 +579,7 @@ components:
         datos:
           type: array
           items:
-            $ref: "#/components/schemas/Cliente"
+            $ref: "#/components/schemas/ClienteListado"
     RespuestaListaRutinas:
       type: object
       required: [ok, datos]

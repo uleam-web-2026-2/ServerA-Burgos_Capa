@@ -49,31 +49,9 @@ func (s *ServicioRutinas) Listar(ctx context.Context, estado string) ([]RutinaSa
 	return respuesta, nil
 }
 
-func (s *ServicioRutinas) Crear(ctx context.Context, entrada any) (RutinaSalida, error) {
-	var rutina dominio.Rutina
-	switch valor := entrada.(type) {
-	case *RutinaEntrada:
-		if valor == nil {
-			return RutinaSalida{}, errors.New("rutina vacía")
-		}
-		rutina = valor.AModelo()
-	case *dominio.Rutina:
-		if valor == nil {
-			return RutinaSalida{}, errors.New("rutina vacía")
-		}
-		rutina = *valor
-	case RutinaEntrada:
-		rutina = valor.AModelo()
-	case RutinaActualizacion:
-		rutina = valor.AModelo()
-	case dominio.Rutina:
-		rutina = valor
-	default:
-		return RutinaSalida{}, errors.New("tipo de rutina no soportado")
-	}
-	if rutina.Estado == "" {
-		rutina.Estado = "pendiente"
-	}
+func (s *ServicioRutinas) Crear(ctx context.Context, entrada RutinaEntrada) (RutinaSalida, error) {
+	rutina := entrada.AModelo()
+	rutina.Estado = "pendiente"
 	if err := s.repositorio.CrearRutina(ctx, &rutina); err != nil {
 		return RutinaSalida{}, err
 	}
@@ -88,29 +66,8 @@ func (s *ServicioRutinas) Obtener(ctx context.Context, id uint) (RutinaSalida, e
 	return RutinaSalidaDesdeDominio(rutina), nil
 }
 
-func (s *ServicioRutinas) Actualizar(ctx context.Context, id uint, entrada any) (RutinaSalida, error) {
-	var cambios dominio.Rutina
-	switch valor := entrada.(type) {
-	case *RutinaEntrada:
-		if valor == nil {
-			return RutinaSalida{}, errors.New("rutina vacía")
-		}
-		cambios = valor.AModelo()
-	case *dominio.Rutina:
-		if valor == nil {
-			return RutinaSalida{}, errors.New("rutina vacía")
-		}
-		cambios = *valor
-	case RutinaEntrada:
-		cambios = valor.AModelo()
-	case RutinaActualizacion:
-		cambios = valor.AModelo()
-	case dominio.Rutina:
-		cambios = valor
-	default:
-		return RutinaSalida{}, errors.New("tipo de rutina no soportado")
-	}
-
+func (s *ServicioRutinas) Actualizar(ctx context.Context, id uint, entrada RutinaActualizacion) (RutinaSalida, error) {
+	cambios := entrada.AModelo()
 	rutina, err := s.repositorio.ActualizarRutina(ctx, id, cambios)
 	if err != nil {
 		return RutinaSalida{}, err
