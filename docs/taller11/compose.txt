@@ -1,0 +1,29 @@
+﻿# Reto Compose - evidencia local
+
+## Configuración
+Validación: `docker compose --env-file .env.compose config --quiet` pasó.
+Tres arranques desde volúmenes vacíos: **3/3**; en cada uno PostgreSQL llegó a `healthy`, la API quedó en ejecución y se crearon las cuatro tablas públicas.
+Persistencia: después de `docker compose down` y `up -d`, se conservaron los conteos de las tablas siguientes:
+
+```text
+entrenadores=1
+clientes=2
+rutinas=2
+usuarios=2
+```
+
+Smoke test de disponibilidad: `GET /login` devolvió HTTP `405`, esperado para una ruta registrada solo como `POST`; esto confirma respuesta del servidor, no reemplaza las seis peticiones de Bruno.
+
+## `docker compose ps`
+```text
+NAME                           IMAGE                   COMMAND                  SERVICE    CREATED          STATUS                    PORTS
+gymcoach-taller11-api-1        gymcoach-taller11-api   "/servidor"              api        43 seconds ago   Up 36 seconds             0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+gymcoach-taller11-postgres-1   postgres:16-alpine      "docker-entrypoint.s…"   postgres   43 seconds ago   Up 42 seconds (healthy)   5432/tcp
+```
+
+## `docker compose logs api`
+```text
+api-1  | 2026/11/11 14:49:07 escuchando en el puerto 8080
+```
+
+Pendiente para el cierre compartido: ejecutar y documentar las seis peticiones Bruno, completar la tabla `Con Compose`, revisión de Persona 2 y commit del reto.

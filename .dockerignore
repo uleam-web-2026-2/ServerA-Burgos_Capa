@@ -1,0 +1,13 @@
+# Secretos locales: permitir unicamente la plantilla sin credenciales.
+.env
+.env.*
+!.env.example
+!.env.compose.example
+
+# Metadatos y artefactos locales.
+.git
+.gitignore
+.DS_Store
+*.exe
+*.out
+bin/
