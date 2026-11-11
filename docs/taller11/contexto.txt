@@ -1,0 +1,22 @@
+﻿total 88
+drwxr-xr-x 1 root root 4096 Nov 11 14:25 .
+drwxr-xr-x 1 root root 4096 Nov 11 15:13 ..
+-rwxr-xr-x 1 root root  210 Nov 11 14:24 .dockerignore
+-rwxr-xr-x 1 root root  343 Nov 11 14:24 .env.compose.example
+-rwxr-xr-x 1 root root  170 Nov 11 14:22 .env.example
+drwxr-xr-x 3 root root 4096 Nov  6 03:43 .github
+drwxr-xr-x 2 root root 4096 Nov  6 03:43 .postman
+-rwxr-xr-x 1 root root  429 Nov 11 14:09 Dockerfile
+-rwxr-xr-x 1 root root 2502 Nov  6 03:43 LEEME_CAMBIOS.md
+-rwxr-xr-x 1 root root 7458 Nov 11 02:28 README.md
+-rwxr-xr-x 1 root root 1133 Nov 11 14:24 compose.yaml
+drwxr-xr-x 2 root root 4096 Nov  6 03:43 db
+drwxr-xr-x 6 root root 4096 Nov 11 15:13 docs
+-rwxr-xr-x 1 root root  689 Nov  6 03:43 go.mod
+-rwxr-xr-x 1 root root 3999 Nov  6 03:43 go.sum
+drwxr-xr-x 7 root root 4096 Nov  6 03:43 internal
+-rwxr-xr-x 1 root root 2911 Nov  6 03:43 main.go
+drwxr-xr-x 4 root root 4096 Nov  6 03:43 postman
+-rwxr-xr-x 1 root root 3583 Nov  6 03:43 pruebas.sh
+-rwxr-xr-x 1 root root  403 Nov  6 03:43 redocly.yaml
+-rwxr-xr-x 1 root root  272 Nov  6 03:43 sqlc.yaml

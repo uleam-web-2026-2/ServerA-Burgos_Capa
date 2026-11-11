@@ -60,3 +60,48 @@ La entidad principal que demostramos es **Rutina**. Para el cambio de estado ele
 Elegimos esta separación porque cada parte tiene un motivo distinto para cambiar. Si cambia la máquina de estados, se modifica dominio; si cambia PostgreSQL, el repositorio; si cambia el contrato HTTP, el manejador. En `main.go` se conectan las capas. Todas las rutas de Rutina usan el servicio y el repositorio; las rutas de Cliente no forman parte de la entidad principal demostrada.
 
 Para enseñar el recorrido del `PATCH /rutinas/{id}`, abrir `internal/gymcoach/estado.go` (manejador) y `internal/gymcoach/dominio/estado.go` (regla). La escritura en base de datos queda en `internal/gymcoach/repositorio/rutinas.go`.
+
+## Semana 11 · reto: la API y la base, juntas
+
+Estas decisiones registran el diseño implementado en `compose.yaml`. El arranque
+desde tres bases vacías y la persistencia tras `down` se validaron localmente;
+falta la revisión cruzada y la regresión de las seis peticiones.
+
+### D5 · Red entre API y PostgreSQL
+
+La API se conecta a PostgreSQL mediante el nombre de servicio `postgres` y el
+puerto interno `5432`, dentro de la red privada creada por Compose. No usa
+`localhost`, `host.docker.internal` ni el puerto publicado `5433` de la máquina.
+PostgreSQL no publica un puerto en el host, por lo que no compite con los otros
+contenedores locales.
+
+### D6 · Orden de arranque
+
+PostgreSQL define un healthcheck con `pg_isready`. La API depende de que el
+servicio esté `healthy` antes de iniciar; así sus migraciones y datos de ejemplo
+no intentan ejecutarse mientras el servidor de base de datos aún está
+inicializando. Se validó en tres arranques con bases vacías.
+
+### D7 · Configuración y secretos locales
+
+`compose.yaml` no guarda contraseñas ni claves reales. Los valores requeridos
+se leen desde `.env.compose`, archivo local ignorado por Git y por el contexto
+de Docker; `.env.compose.example` contiene solo valores de reemplazo. La
+contraseña configurada debe ser URL-safe porque se incorpora a `DATABASE_URL`.
+
+### D8 · Persistencia aislada
+
+El servicio PostgreSQL monta el volumen nombrado `postgres_data`, que Compose
+crea dentro del proyecto `gymcoach-taller11`.
+`docker compose --env-file .env.compose down` conserva el volumen;
+`docker compose --env-file .env.compose down -v` lo elimina intencionalmente.
+Este volumen no es el del contenedor PostgreSQL existente fuera de Compose.
+
+### D9 · Puertos y acceso a la base
+
+La API publica el puerto definido por `PUERTO` (por defecto `8080`) y Bruno
+debe apuntar a ese puerto. PostgreSQL queda solo en la red de Compose; para
+consultarlo se usa `docker compose --env-file .env.compose exec postgres psql`
+con el usuario y la base configurados localmente. La persistencia y los tres
+arranques limpios pasaron; las seis peticiones HTTP siguen pendientes de
+validación.

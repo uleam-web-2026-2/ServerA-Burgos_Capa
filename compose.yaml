@@ -1,0 +1,38 @@
+name: gymcoach-taller11
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Configure POSTGRES_DB in .env.compose}
+      POSTGRES_USER: ${POSTGRES_USER:?Configure POSTGRES_USER in .env.compose}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD in .env.compose}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\"",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+
+  api:
+    build:
+      context: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      CLAVE_FIRMA: ${CLAVE_FIRMA:?Configure CLAVE_FIRMA in .env.compose}
+      PUERTO: ${PUERTO:-8080}
+      TIEMPO_ESPERA_SEGUNDOS: ${TIEMPO_ESPERA_SEGUNDOS:-5}
+    ports:
+      - "${PUERTO:-8080}:${PUERTO:-8080}"
+
+volumes:
+  postgres_data:
