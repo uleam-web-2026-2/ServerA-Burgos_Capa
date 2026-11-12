@@ -61,11 +61,40 @@ Elegimos esta separación porque cada parte tiene un motivo distinto para cambia
 
 Para enseñar el recorrido del `PATCH /rutinas/{id}`, abrir `internal/gymcoach/estado.go` (manejador) y `internal/gymcoach/dominio/estado.go` (regla). La escritura en base de datos queda en `internal/gymcoach/repositorio/rutinas.go`.
 
+## Semana 11 · el contenedor
+
+### D1 · Construcción en etapas
+
+La imagen compila la API con `golang:1.27` y ejecuta únicamente el binario
+estático en `gcr.io/distroless/static-debian13:nonroot`. Así las herramientas
+de compilación no forman parte de la imagen de ejecución.
+
+### D2 · Contexto de construcción
+
+`.dockerignore` excluye `.env`, `.env.*`, `.git` y artefactos locales, y permite
+las plantillas públicas `.env.example` y `.env.compose.example`. La configuración
+local `.env.docker` se verificó como ignorada; ningún secreto se registró en
+los logs o evidencias.
+
+### D3 · Usuario de ejecución
+
+La imagen final usa el usuario `nonroot`; `docs/taller11/usuario.txt` registra
+el UID `65532`. El proceso no necesita privilegios de root para atender la API.
+
+### D4 · Fechas en la respuesta
+
+La respuesta completa de `GET /rutinas/{id}` se guardó en
+`docs/taller11/peticiones.md`. No contiene campos de fecha ni hora, así que no
+hay una representación temporal que comparar entre la imagen local y
+Distroless; el posible efecto de la zona horaria no aplica al contrato actual.
+La línea base actual con `go run` sigue pendiente de repetición.
+
 ## Semana 11 · reto: la API y la base, juntas
 
 Estas decisiones registran el diseño implementado en `compose.yaml`. El arranque
-desde tres bases vacías y la persistencia tras `down` se validaron localmente;
-falta la revisión cruzada y la regresión de las seis peticiones.
+desde tres bases vacías y la persistencia tras `down` se validaron localmente.
+La regresión HTTP de las seis peticiones pasó en la validación aislada descrita
+en `docs/taller11/peticiones.md`; falta la revisión cruzada.
 
 ### D5 · Red entre API y PostgreSQL
 
@@ -100,8 +129,10 @@ Este volumen no es el del contenedor PostgreSQL existente fuera de Compose.
 ### D9 · Puertos y acceso a la base
 
 La API publica el puerto definido por `PUERTO` (por defecto `8080`) y Bruno
-debe apuntar a ese puerto. PostgreSQL queda solo en la red de Compose; para
-consultarlo se usa `docker compose --env-file .env.compose exec postgres psql`
-con el usuario y la base configurados localmente. La persistencia y los tres
-arranques limpios pasaron; las seis peticiones HTTP siguen pendientes de
-validación.
+debe apuntar a ese puerto. En la validación de Windows, `8080` estaba ocupado
+por un proceso PostgreSQL local, por lo que se usó `PUERTO=18080`; la API
+respondió desde el host sin cambiar el puerto interno de PostgreSQL. PostgreSQL
+queda solo en la red de Compose; para consultarlo se usa
+`docker compose --env-file .env.compose exec postgres psql` con el usuario y la
+base configurados localmente. La persistencia, los tres arranques limpios y las
+seis peticiones HTTP pasaron.

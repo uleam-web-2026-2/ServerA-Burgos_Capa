@@ -26,4 +26,46 @@ gymcoach-taller11-postgres-1   postgres:16-alpine      "docker-entrypoint.s…" 
 api-1  | 2026/11/11 14:49:07 escuchando en el puerto 8080
 ```
 
-Pendiente para el cierre compartido: ejecutar y documentar las seis peticiones Bruno, completar la tabla `Con Compose`, revisión de Persona 2 y commit del reto.
+## Validación HTTP adicional en la rama `taller11`
+
+La imagen de la rama se construyó correctamente. Para no interferir con otros
+proyectos, Compose se ejecutó con el nombre aislado
+`gymcoach-taller11-validation` y un `.env.compose` local ignorado por Git.
+PostgreSQL quedó `healthy`; la API se publicó en `18080` porque Windows ya
+tenía un listener PostgreSQL en el puerto `8080`.
+
+Las seis peticiones contra `http://127.0.0.1:18080` devolvieron:
+
+```text
+401, 200, 200, 403, 200, 422
+Petición 5: estado en_progreso
+Petición 6: error transicion_prohibida
+```
+
+La rutina de prueba se creó dentro del volumen aislado del proyecto de
+validación. No se usaron ni modificaron datos de otra base.
+
+## `docker compose ps` de la validación
+
+```text
+NAME                                      IMAGE                              COMMAND                  SERVICE    CREATED          STATUS                    PORTS
+gymcoach-taller11-validation-api-1        gymcoach-taller11-validation-api   "/servidor"              api        16 minutes ago   Up 16 minutes             0.0.0.0:18080->18080/tcp, [::]:18080->18080/tcp
+gymcoach-taller11-validation-postgres-1   postgres:16-alpine                 "docker-entrypoint.s…"   postgres   29 minutes ago   Up 29 minutes (healthy)   5432/tcp
+```
+
+## Regresión HTTP en los logs de Compose
+
+```text
+2026/11/12 01:33:16 "POST http://127.0.0.1:18080/login HTTP/1.1" - 200
+2026/11/12 01:33:17 "GET http://127.0.0.1:18080/clientes HTTP/1.1" - 200
+2026/11/12 01:33:17 "POST http://127.0.0.1:18080/rutinas HTTP/1.1" - 201
+2026/11/12 01:33:17 "GET http://127.0.0.1:18080/rutinas/4 HTTP/1.1" - 401
+2026/11/12 01:33:17 "POST http://127.0.0.1:18080/login HTTP/1.1" - 200
+2026/11/12 01:33:17 "GET http://127.0.0.1:18080/rutinas/4 HTTP/1.1" - 200
+2026/11/12 01:33:18 "PATCH http://127.0.0.1:18080/rutinas/4 HTTP/1.1" - 403
+2026/11/12 01:33:18 "PATCH http://127.0.0.1:18080/rutinas/4 HTTP/1.1" - 200
+2026/11/12 01:33:18 "PATCH http://127.0.0.1:18080/rutinas/4 HTTP/1.1" - 422
+```
+
+La revisión cruzada y una repetición actual de las seis peticiones con `go run`
+siguen pendientes; no se marcan como realizadas por esta evidencia.
