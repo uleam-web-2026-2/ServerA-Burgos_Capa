@@ -1,0 +1,36 @@
+﻿# Logs reales del contenedor independiente; no se registran cuerpos ni tokens.
+2026/11/12 01:39:24 escuchando en el puerto 18081
+
+2026/11/12 01:39:19 [32m/src/main.go:35 [33mSLOW SQL >= 200ms
+[0m[31;1m[302.890ms] [33m[rows:1][35m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'entrenadores' AND table_type = 'BASE TABLE'[0m
+
+2026/11/12 01:39:19 [32m/src/main.go:35 [33mSLOW SQL >= 200ms
+[0m[31;1m[220.179ms] [33m[rows:-][35m SELECT c.column_name, c.is_nullable = 'YES', c.udt_name, c.character_maximum_length, c.numeric_precision, c.numeric_precision_radix, c.numeric_scale, c.datetime_precision, 8 * typlen, c.column_default, pd.description, c.identity_increment FROM information_schema.columns AS c JOIN pg_type AS pgt ON c.udt_name = pgt.typname LEFT JOIN pg_catalog.pg_description as pd ON pd.objsubid = c.ordinal_position AND pd.objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = c.table_name AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = c.table_schema)) where table_catalog = 'gymcoach' AND table_schema = CURRENT_SCHEMA() AND table_name = 'entrenadores'[0m
+2026/11/12 01:39:25 "GET http://127.0.0.1:18081/login HTTP/1.1" from 172.17.0.1:41166 - 405 0B in 6.563057ms
+
+2026/11/12 01:40:07 [32m/src/internal/sesion/usuarios.go:80 [33mSLOW SQL >= 200ms
+[0m[31;1m[327.961ms] [33m[rows:1][35m SELECT * FROM "usuarios" WHERE nombre = 'luis' LIMIT 1[0m
+2026/11/12 01:40:07 "POST http://127.0.0.1:18081/login HTTP/1.1" from 172.17.0.1:59204 - 200 221B in 1.103061361s
+
+2026/11/12 01:40:09 [32m/src/internal/gymcoach/manejadores.go:109 [33mSLOW SQL >= 200ms
+[0m[31;1m[450.996ms] [33m[rows:1][35m SELECT * FROM "entrenadores" WHERE "entrenadores"."id" = 1 AND "entrenadores"."deleted_at" IS NULL[0m
+
+2026/11/12 01:40:09 [32m/src/internal/gymcoach/manejadores.go:109 [33mSLOW SQL >= 200ms
+[0m[31;1m[242.344ms] [33m[rows:3][35m SELECT * FROM "rutinas" WHERE "rutinas"."cliente_id" IN (1,2) AND "rutinas"."deleted_at" IS NULL[0m
+
+2026/11/12 01:40:09 [32m/src/internal/gymcoach/manejadores.go:109 [33mSLOW SQL >= 200ms
+[0m[31;1m[1148.919ms] [33m[rows:2][35m SELECT * FROM "clientes" WHERE "clientes"."deleted_at" IS NULL ORDER BY id ASC[0m
+2026/11/12 01:40:09 "GET http://127.0.0.1:18081/clientes HTTP/1.1" from 172.17.0.1:59204 - 200 918B in 1.183902907s
+
+2026/11/12 01:40:10 [32m/src/internal/gymcoach/repositorio/rutinas.go:27 [33mSLOW SQL >= 200ms
+[0m[31;1m[285.160ms] [33m[rows:1][35m SELECT * FROM "clientes" WHERE "clientes"."id" = 1 AND "clientes"."deleted_at" IS NULL ORDER BY "clientes"."id" LIMIT 1[0m
+
+2026/11/12 01:40:10 [32m/src/internal/gymcoach/repositorio/rutinas.go:34 [33mSLOW SQL >= 200ms
+[0m[31;1m[417.813ms] [33m[rows:1][35m INSERT INTO "rutinas" ("created_at","updated_at","deleted_at","titulo","descripcion","dias_semana","estado","cliente_id") VALUES ('2026-11-12 01:40:10.275','2026-11-12 01:40:10.275',NULL,'Validacion contenedor Taller 11','Prueba aislada con PostgreSQL externo',3,'pendiente',1) RETURNING "id"[0m
+2026/11/12 01:40:10 "POST http://127.0.0.1:18081/rutinas HTTP/1.1" from 172.17.0.1:59204 - 201 178B in 944.450705ms
+2026/11/12 01:40:10 "GET http://127.0.0.1:18081/rutinas/4 HTTP/1.1" from 172.17.0.1:59204 - 401 102B in 75.23µs
+2026/11/12 01:40:11 "POST http://127.0.0.1:18081/login HTTP/1.1" from 172.17.0.1:59204 - 200 216B in 565.790952ms
+2026/11/12 01:40:11 "GET http://127.0.0.1:18081/rutinas/4 HTTP/1.1" from 172.17.0.1:59204 - 200 307B in 79.672465ms
+2026/11/12 01:40:11 "PATCH http://127.0.0.1:18081/rutinas/4 HTTP/1.1" from 172.17.0.1:59204 - 403 100B in 170.647µs
+2026/11/12 01:40:11 "PATCH http://127.0.0.1:18081/rutinas/4 HTTP/1.1" from 172.17.0.1:48502 - 200 309B in 102.144565ms
+2026/11/12 01:40:11 "PATCH http://127.0.0.1:18081/rutinas/4 HTTP/1.1" from 172.17.0.1:48502 - 422 112B in 24.949849ms

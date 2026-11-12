@@ -1,0 +1,19 @@
+# Prueba de la API en un contenedor independiente
+
+- Imagen: `gymcoach-taller11-validation-api:latest`.
+- Configuración: archivo local `.env.docker`, ignorado por Git; no se guardan
+  sus valores en esta evidencia.
+- PostgreSQL: contenedor temporal e independiente en el host, publicado en
+  `15432`; la API se conectó por `host.docker.internal:15432`. Esta base se creó
+  solo para la prueba y no es la base local del equipo.
+- Puerto de la API: `18081`, porque el puerto de host `8080` estaba ocupado.
+- El contenedor inició y registró `escuchando en el puerto 18081`.
+- `GET /login` devolvió HTTP `405`, esperado porque la ruta acepta `POST`.
+- Las seis peticiones del Hito 2 devolvieron `401`, `200`, `200`, `403`, `200`
+  y `422`. La petición 5 dejó `en_progreso`; la petición 6 devolvió
+  `transicion_prohibida`. Ver [peticiones.md](./peticiones.md).
+- Los logs HTTP están en [logs_contenedor.txt](./logs_contenedor.txt); no
+  incluyen tokens ni contraseñas.
+
+La comprobación de inicio sin configuración, incluida la falta de
+`DATABASE_URL`, está en [1_sin_variables.txt](./1_sin_variables.txt).
