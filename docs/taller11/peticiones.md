@@ -44,6 +44,11 @@ diferencia de zona horaria en la petición 3. La petición 5 confirmó el estado
   `gymcoach-taller11-validation`, con PostgreSQL saludable y API publicada en
   `127.0.0.1:18080`.
 - Las evidencias de inicio sin configuración, arranque del contenedor, logs y
-  estado de Compose están en esta carpeta. No se registró una repetición actual
-  de la línea base con `go run`; esa comparación debe completarse si la rúbrica
-  exige una columna medida para ese entorno.
+  estado de Compose están en esta carpeta. La línea base con `go run` no se
+  midió y el enunciado oficial exige comparar sus códigos con los del contenedor.
+
+El 12 de noviembre de 2026 intenté preparar esa repetición, pero Docker Desktop
+reportó estado `stopped` y el motor no estuvo disponible; no pude verificar una
+base temporal aislada. No ejecuté la API contra la base local habitual: al
+arrancar, el servidor migra y siembra la base. La columna `Con go run` sigue
+pendiente hasta poder usar una base temporal aislada.
