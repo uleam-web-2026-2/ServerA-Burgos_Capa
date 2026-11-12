@@ -22,8 +22,8 @@ las decisiones D5–D9 y las pruebas integradas.
 
 - **Rama local:** `taller11`, basada en la rama remota de entrega.
 - **Rama remota:** `origin/taller11` ya está publicada; el commit inicial del
-  punto 1 es `9456fcb`. Los commits de Persona 2 y de la regresión se agregan
-  después de guardar y revisar estas evidencias.
+  punto 1 es `9456fcb`; los commits de evidencia de Persona 2 y de Compose,
+  `a0a2c32` y `eb11f78`, también están publicados.
 - **Repositorio antes del taller:** no tenía `Dockerfile`, `.dockerignore` ni
   evidencias de `docs/taller11/`; sí contenía el enunciado y la guía de pareja.
 - **Go:** `go test ./... -count=1` y `go build ./...` terminaron correctamente
@@ -42,9 +42,15 @@ las decisiones D5–D9 y las pruebas integradas.
   `gcr.io/distroless/static-debian13:nonroot`.
 - **Otros contenedores:** la validación usó contenedores con nombres únicos.
   No se detuvieron, borraron ni modificaron contenedores ajenos.
-- **Configuración local:** `.env` existe y está excluido por el `.gitignore`
-  existente. No copiar sus valores secretos a este documento, a `compose.yaml`,
-  a los commits ni a las evidencias.
+- **Limpieza de validación:** se eliminaron los archivos `.env.*` de prueba.
+  No se pudo confirmar la eliminación de los contenedores y el volumen
+  temporales porque Docker Engine devolvió HTTP 500 al listar contenedores.
+  No se reinició Docker Desktop para evitar afectar otros proyectos.
+- **Configuración local:** este worktree no conserva `.env` ni archivos
+  `.env.*` de validación; los seis archivos temporales usados para las pruebas
+  se eliminaron. Las reglas existentes de `.gitignore` excluyen `.env.*`.
+  No copiar valores secretos a este documento, a `compose.yaml`, a los commits
+  ni a las evidencias.
 - **PostgreSQL GymCoach:** el contenedor existente `gymcoach-db` publica el
   puerto `5432`; estaba detenido y se inició para validar acceso. Una consulta
   estrictamente de solo lectura confirmó que las credenciales de `.env`
@@ -73,7 +79,7 @@ las decisiones D5–D9 y las pruebas integradas.
 | Construir imagen final y etapa `compilacion` | Hecho | `docker build -t gymcoach .` y `docker build --target compilacion -t gymcoach:compilacion .` finalizaron correctamente. |
 | Guardar `imagenes.txt` y `capas.txt` | Hecho | Archivos generados desde `docker image ls gymcoach` y `docker history gymcoach`. |
 | Guardar `contexto.txt` y `usuario.txt` | Hecho | `/src` contiene `.env.example`, no contiene `.env` ni `.git`; la imagen final indica el usuario `65532`. |
-| Revisión de Persona 2 y commit del punto 1 | Parcial | El commit `9456fcb` está en `origin/taller11`, pero no incluye una declaración de uso de IA; confirmar ese requisito con su autor. La revisión cruzada también sigue pendiente. |
+| Revisión de Persona 2 y commit del punto 1 | Parcial | El commit `9456fcb` está en `origin/taller11`, pero no incluye una declaración de uso de IA; confirmar ese requisito con su autor. La revisión cruzada de la imagen sigue pendiente. |
 
 ### Resultados medidos del punto 1
 
@@ -97,8 +103,8 @@ las decisiones D5–D9 y las pruebas integradas.
 - [x] `imagenes.txt`, `capas.txt`, `contexto.txt` y `usuario.txt` contienen la
   salida real.
 - [x] `usuario.txt` indica `65532`; el contexto no contiene `.env` ni `.git`.
-- [ ] Persona 2 revisó el cambio; se creó el commit del punto 1 y se publicó la
-  rama.
+- [x] El commit del punto 1 y la rama están publicados.
+- [ ] Persona 2 revisó la imagen; la revisión cruzada sigue pendiente.
 
 ## Punto 2 · Contenedor atiende la API · Responsable: Persona 2
 
@@ -112,7 +118,7 @@ las decisiones D5–D9 y las pruebas integradas.
 | Guardar `peticiones.md` y `logs_contenedor.txt` | Hecho | Evidencias reales guardadas sin tokens ni contraseñas. |
 | Comparar respuesta completa de petición 3 | Parcial | La respuesta del contenedor está registrada; no hay fechas en el cuerpo. Falta repetir con `go run` para una comparación directa. |
 | Escribir D1–D4 en `docs/decisiones.md` | Hecho | Decisiones basadas en Dockerfile, contexto, UID y respuesta observada. |
-| Revisión de Persona 1 y commit del punto 2 | Parcial | El commit `a0a2c32` guarda las evidencias de Persona 2; falta publicarlo y la revisión cruzada sigue pendiente. |
+| Revisión de Persona 1 y commit del punto 2 | Parcial | El commit `a0a2c32` está publicado con declaración de uso de IA; Persona 1 aún debe hacer la revisión cruzada. |
 
 ## Reto · API y PostgreSQL con Compose · Trabajo compartido
 
@@ -148,20 +154,21 @@ aislada. La revisión cruzada sigue pendiente.
 | Comprobar persistencia después de `docker compose down` | Hecho localmente | Después de `down` y `up`, se conservaron los conteos de entrenadores, clientes, rutinas y usuarios (1, 2, 2, 2). |
 | Ejecutar seis peticiones con Compose | Hecho | `401`, `200`, `200`, `403`, `200`, `422`; estado `en_progreso` y error `transicion_prohibida` comprobados. |
 | Guardar `compose.txt` y completar D5–D9 | Hecho | Se conservaron los resultados de tres arranques, persistencia, estado y regresión HTTP. |
-| Revisión de ambas personas y commit del reto | Parcial | La evidencia integrada y D5–D9 están listas para el commit del reto; faltan la revisión cruzada y repetir la línea base con `go run`. |
+| Revisión de ambas personas y commit del reto | Parcial | El commit `eb11f78` está publicado con declaración de uso de IA; faltan la revisión cruzada y repetir la línea base con `go run`. |
 
 ## Entrega final
 
 - [ ] Docker Desktop está iniciado y las imágenes base están disponibles.
 - [x] La rama `taller11` está publicada en el remoto correcto.
-- [ ] Los commits del punto 1, punto 2 y reto están publicados; cada uno declara
-  qué herramienta de IA se usó y para qué, de acuerdo con el enunciado.
+- [ ] Los commits del punto 1, punto 2 y reto están publicados. El commit del
+  punto 1 no declara qué herramienta de IA se usó ni para qué; confirmarlo con
+  su autor, sin atribuirle una revisión o declaración no comprobada.
 - [ ] Las evidencias de imagen, contenedor y Compose son reales y no contienen
   secretos; falta repetir y guardar la línea base actual de `go run`.
 - [ ] D1–D9 están en `docs/decisiones.md` y describen la solución implementada.
 - [x] `go test ./...`, `go vet ./...` y `go build ./...` pasan en la rama de entrega.
-- [ ] `git status` no muestra `.env`, `.env.docker` ni otros secretos como
-  archivos por agregar.
+- [x] `git status` no muestra `.env`, `.env.docker` ni otros secretos como
+  archivos por agregar; los archivos locales de validación se eliminaron.
 - [ ] La otra persona revisó los cambios de Persona 1 y Persona 1 revisó los de
   Persona 2 antes de cerrar cada punto.
 - [ ] Todo quedó subido a la rama `taller11` dentro de la fecha de entrega.
