@@ -1,0 +1,11 @@
+﻿# Observed startup checks for gymcoach-taller11-validation-api:latest
+
+Command: docker run --rm gymcoach-taller11-validation-api:latest
+Exit code: 1
+2026/11/12 01:50:55 configuración: falta CLAVE_FIRMA (copie .env.example a .env)
+
+Command: docker run --rm -e CLAVE_FIRMA=local-validation-only gymcoach-taller11-validation-api:latest
+Exit code: 1
+2026/11/12 01:51:00 configuración: falta DATABASE_URL (copie .env.example a .env y complete la contraseña)
+
+Both commands exited with code 1 as expected. No real secrets were passed or recorded.
