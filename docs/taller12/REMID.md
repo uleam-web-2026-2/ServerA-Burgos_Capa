@@ -23,7 +23,7 @@
 
 ### Evidencia pendiente real de Persona 1
 
-- Crear el commit del punto 1 y subirlo a la rama `taller12`.
+- Hecho: el commit del punto 1 es `7efbfdb` y fue publicado en `taller12`.
 
 ## Responsabilidad siguiente: Persona 2
 
