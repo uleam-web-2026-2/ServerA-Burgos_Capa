@@ -1,0 +1,18 @@
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Thu, 19 Nov 2026 15:06:47 GMT
+Content-Length: 304
+
+{"ok":true,"datos":[{"id":1,"titulo":"Fuerza inicial","descripcion":"Rutina de cuerpo completo con cargas progresivas.","dias_semana":3,"estado":"pendiente","cliente_id":1,"cliente":{"id":1,"nombre":"Daniela Vera","correo":"daniela@example.test","objetivo":"Mejorar fuerza general","entrenador_id":1}}]}
+HTTP/1.1 422 Unprocessable Entity
+Content-Type: application/json; charset=utf-8
+Date: Thu, 19 Nov 2026 15:06:47 GMT
+Content-Length: 106
+
+{"ok":false,"error":{"codigo":"estado_invalido","mensaje":"El filtro de estado de rutina no es válido"}}
+HTTP/1.1 400 Bad Request
+Content-Type: application/json; charset=utf-8
+Date: Thu, 19 Nov 2026 15:06:47 GMT
+Content-Length: 92
+
+{"ok":false,"error":{"codigo":"id_invalido","mensaje":"El id debe ser un entero positivo"}}

@@ -1,0 +1,47 @@
+PETICION 1
+HTTP/1.1 401 Unauthorized
+Content-Type: application/json; charset=utf-8
+Date: Thu, 19 Nov 2026 15:21:54 GMT
+Content-Length: 102
+
+{"ok":false,"error":{"codigo":"sin_token","mensaje":"falta el token: inicie sesión en POST /login"}}
+
+PETICION 2
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Thu, 19 Nov 2026 15:21:56 GMT
+Content-Length: 221
+
+{"ok":true,"datos":{"token":"<token omitido>"}}
+
+PETICION 3
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Thu, 19 Nov 2026 15:21:57 GMT
+Content-Length: 844
+
+{"ok":true,"datos":[{"id":1,"titulo":"Fuerza inicial","descripcion":"Rutina de cuerpo completo con cargas progresivas.","dias_semana":3,"estado":"en_progreso","cliente_id":1,"cliente":{"id":1,"nombre":"Daniela Vera","correo":"daniela@example.test","objetivo":"Mejorar fuerza general","entrenador_id":1}},{"id":2,"titulo":"Resistencia base","descripcion":"Trabajo de acondicionamiento y movilidad.","dias_semana":4,"estado":"en_progreso","cliente_id":2,"cliente":{"id":2,"nombre":"Luis Mera","correo":"luis@example.test","objetivo":"Aumentar resistencia","entrenador_id":1}},{"id":3,"titulo":"Rutina taller 12","descripcion":"Rutina nueva para validar estados","dias_semana":3,"estado":"pendiente","cliente_id":1,"cliente":{"id":1,"nombre":"Daniela Vera","correo":"daniela@example.test","objetivo":"Mejorar fuerza general","entrenador_id":1}}]}
+
+PETICION 4
+HTTP/1.1 403 Forbidden
+Content-Type: application/json; charset=utf-8
+Date: Thu, 19 Nov 2026 15:21:58 GMT
+Content-Length: 100
+
+{"ok":false,"error":{"codigo":"rol_no_permitido","mensaje":"solo el rol cliente puede hacer esto"}}
+
+PETICION 5
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Thu, 19 Nov 2026 15:22:00 GMT
+Content-Length: 290
+
+{"ok":true,"datos":{"id":3,"titulo":"Rutina taller 12","descripcion":"Rutina nueva para validar estados","dias_semana":3,"estado":"en_progreso","cliente_id":1,"cliente":{"id":1,"nombre":"Daniela Vera","correo":"daniela@example.test","objetivo":"Mejorar fuerza general","entrenador_id":1}}}
+
+PETICION 6
+HTTP/1.1 422 Unprocessable Entity
+Content-Type: application/json; charset=utf-8
+Date: Thu, 19 Nov 2026 15:22:00 GMT
+Content-Length: 112
+
+{"ok":false,"error":{"codigo":"transicion_prohibida","mensaje":"de en_progreso no se puede pasar a pendiente"}}
