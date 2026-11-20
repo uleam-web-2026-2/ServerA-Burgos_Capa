@@ -1,0 +1,40 @@
+internal/config/config.go:35:		return c, fmt.Errorf("falta DATABASE_URL " +
+internal/config/config.go:48:		return c, fmt.Errorf("TIEMPO_ESPERA_SEGUNDOS debe ser un entero "+
+internal/gymcoach/aplicacion/rutinas.go:19:	return fmt.Sprintf("de %s no se puede pasar a %s", e.De, e.A)
+internal/gymcoach/estado.go:30:			"estado no permitido: "+pedido.Estado)
+internal/gymcoach/estado.go:55:			"estado no permitido: "+pedido.Estado)
+internal/gymcoach/manejadores.go:83:	if err := m.DB.First(&entrenador, entrada.EntrenadorID).Error; err != nil {
+internal/gymcoach/manejadores.go:101:	query := m.DB.Preload("Entrenador").Preload("Rutinas").Order("id ASC")
+internal/gymcoach/manejadores.go:102:	if estado := r.URL.Query().Get("estado"); estado != "" {
+internal/gymcoach/manejadores.go:107:		query = m.DB.Preload("Entrenador").Preload("Rutinas", "estado = ?", estado).Order("id ASC")
+internal/gymcoach/manejadores.go:109:	if err := query.Find(&clientes).Error; err != nil {
+internal/gymcoach/manejadores.go:121:	estado := r.URL.Query().Get("estado")
+internal/gymcoach/migracion.go:14:			if err := tx.Exec(`
+internal/gymcoach/migracion.go:31:				resultado := tx.Exec(consulta)
+internal/gymcoach/migracion.go:39:			if err := tx.Raw(`
+internal/gymcoach/migracion.go:52:				if err := tx.Where("correo = ?", entrenador.Correo).
+internal/gymcoach/migracion.go:56:				resultado := tx.Exec(`
+internal/gymcoach/migracion.go:73:			if err := tx.Exec(`
+internal/gymcoach/migracion.go:94:				resultado := tx.Exec(consulta)
+internal/gymcoach/migracion.go:102:			if err := tx.Raw(`
+internal/gymcoach/migracion.go:112:				err := tx.Order("id ASC").First(&cliente).Error
+internal/gymcoach/migracion.go:121:					if err := tx.Where("correo = ?", entrenador.Correo).
+internal/gymcoach/migracion.go:135:				resultado := tx.Exec(`
+internal/gymcoach/repositorio/rutinas.go:17:	query := r.DB.WithContext(ctx).Preload("Cliente").Order("id ASC")
+internal/gymcoach/repositorio/rutinas.go:19:		query = query.Where("estado = ?", estado)
+internal/gymcoach/repositorio/rutinas.go:21:	err := query.Find(&rutinas).Error
+internal/gymcoach/repositorio/rutinas.go:27:	err := r.DB.WithContext(ctx).First(&cliente, rutina.ClienteID).Error
+internal/gymcoach/repositorio/rutinas.go:39:	err := r.DB.WithContext(ctx).First(&rutina, id).Error
+internal/gymcoach/repositorio/rutinas.go:48:	err := r.DB.WithContext(ctx).Preload("Cliente").First(&rutina, id).Error
+internal/gymcoach/repositorio/rutinas.go:57:	err := r.DB.WithContext(ctx).First(&cliente, cambios.ClienteID).Error
+internal/gymcoach/repositorio/rutinas.go:66:		Where("id = ?", id).
+internal/gymcoach/repositorio/rutinas.go:84:		Where("id = ? AND estado = ?", id, estadoActual).
+internal/gymcoach/repositorio/sqlc/consultas.sql.go:29:	result, err := q.db.ExecContext(ctx, actualizarEstado, arg.NuevoEstado, arg.ID, arg.EstadoActual)
+internal/gymcoach/repositorio/sqlc/consultas.sql.go:55:	row := q.db.QueryRowContext(ctx, obtenerRutina, id)
+internal/gymcoach/repositorio/sqlc/db.go:13:	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
+internal/gymcoach/repositorio/sqlc/db.go:15:	QueryContext(context.Context, string, ...interface{}) (*sql.Rows, error)
+internal/gymcoach/repositorio/sqlc/db.go:16:	QueryRowContext(context.Context, string, ...interface{}) *sql.Row
+internal/sesion/guardia.go:60:					"solo el rol "+rol+" puede hacer esto")
+internal/sesion/usuarios.go:46:		db.Where("nombre = ?", e.nombre).Limit(1).Find(&u)
+internal/sesion/usuarios.go:80:	err := m.DB.Where("nombre = ?", pedido.Usuario).Limit(1).Find(&u).Error
+main.go:82:		Addr:         ":" + cfg.Puerto,
