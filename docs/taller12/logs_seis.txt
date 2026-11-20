@@ -1,0 +1,2 @@
+Evidencia pendiente: reiniciar la API, crear una rutina nueva y ejecutar las seis peticiones con las defensas.
+Se esperan 401, 200, 200, 403, 200 y 422; no se registraron respuestas hasta disponer de PostgreSQL activo.

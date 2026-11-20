@@ -1,0 +1,2 @@
+Evidencia pendiente: no se pudo ejecutar curl contra una API activa porque Docker Engine no respondió.
+La prueba unitaria verificada exige que un origen distinto no reciba Access-Control-Allow-Origin.

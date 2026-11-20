@@ -1,14 +1,11 @@
-name: gymcoach-taller11
+name: gymcoach-taller12
 
 services:
   postgres:
     image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:?Configure POSTGRES_DB in .env.compose}
-      POSTGRES_USER: ${POSTGRES_USER:?Configure POSTGRES_USER in .env.compose}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD in .env.compose}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./db/taller12/01-create-api-role.sh:/docker-entrypoint-initdb.d/01-create-api-role.sh:ro
     healthcheck:
       test:
         [
@@ -19,8 +16,13 @@ services:
       timeout: 3s
       retries: 12
       start_period: 5s
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Configure POSTGRES_DB in .env.compose}
+      POSTGRES_USER: ${POSTGRES_USER:?Configure POSTGRES_USER in .env.compose}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD in .env.compose}
+      API_DB_PASSWORD: ${API_DB_PASSWORD:?Configure API_DB_PASSWORD in .env.compose}
 
-  api:
+  migracion:
     build:
       context: .
     depends_on:
@@ -31,6 +33,47 @@ services:
       CLAVE_FIRMA: ${CLAVE_FIRMA:?Configure CLAVE_FIRMA in .env.compose}
       PUERTO: ${PUERTO:-8080}
       TIEMPO_ESPERA_SEGUNDOS: ${TIEMPO_ESPERA_SEGUNDOS:-5}
+      EJECUTAR_MIGRACIONES: "1"
+      MIGRACION_SOLO: "1"
+    restart: "no"
+
+  permisos-api:
+    image: postgres:16-alpine
+    depends_on:
+      migracion:
+        condition: service_completed_successfully
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD in .env.compose}
+      POSTGRES_DB: ${POSTGRES_DB:?Configure POSTGRES_DB in .env.compose}
+      POSTGRES_USER: ${POSTGRES_USER:?Configure POSTGRES_USER in .env.compose}
+    command:
+      - sh
+      - -ec
+      - |
+        psql -h postgres -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}" -v ON_ERROR_STOP=1 <<'SQL'
+        REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+        GRANT USAGE ON SCHEMA public TO gymcoach_api;
+        GRANT SELECT ON TABLE entrenadores, usuarios TO gymcoach_api;
+        GRANT SELECT, INSERT ON TABLE clientes TO gymcoach_api;
+        GRANT SELECT, INSERT, UPDATE ON TABLE rutinas TO gymcoach_api;
+        GRANT USAGE ON SEQUENCE clientes_id_seq, rutinas_id_seq TO gymcoach_api;
+        SQL
+    restart: "no"
+
+  api:
+    build:
+      context: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+      permisos-api:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgres://gymcoach_api:${API_DB_PASSWORD:?Configure API_DB_PASSWORD in .env.compose}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      CLAVE_FIRMA: ${CLAVE_FIRMA:?Configure CLAVE_FIRMA in .env.compose}
+      PUERTO: ${PUERTO:-8080}
+      TIEMPO_ESPERA_SEGUNDOS: ${TIEMPO_ESPERA_SEGUNDOS:-5}
+      EJECUTAR_MIGRACIONES: "0"
     ports:
       - "${PUERTO:-8080}:${PUERTO:-8080}"
 

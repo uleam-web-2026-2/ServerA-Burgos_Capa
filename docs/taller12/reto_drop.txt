@@ -1,0 +1,2 @@
+Evidencia pendiente: ejecutar el comando DROP TABLE contra el usuario gymcoach_api con PostgreSQL activo.
+Resultado esperado seguro: BEGIN, ERROR must be owner of table ..., ROLLBACK.

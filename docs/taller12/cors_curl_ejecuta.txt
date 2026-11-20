@@ -1,0 +1,6 @@
+Comandos pendientes de ejecutar con la API activa:
+
+curl.exe -i -X OPTIONS http://localhost:8090/rutinas/1 -H "Origin: http://localhost:5173" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: Authorization,Content-Type"
+curl.exe -i -X OPTIONS http://localhost:8090/rutinas/1 -H "Origin: http://malicioso.example" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: Authorization,Content-Type"
+
+Docker Engine no respondió en la sesión de revisión; no se registraron respuestas ficticias.

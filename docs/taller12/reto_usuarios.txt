@@ -1,0 +1,1 @@
+Evidencia pendiente: ejecutar \du con el usuario postgres mientras PostgreSQL esté activo.

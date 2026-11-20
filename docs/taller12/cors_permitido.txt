@@ -1,0 +1,2 @@
+Evidencia pendiente: no se pudo ejecutar contra una API activa porque Docker Engine no respondió.
+La prueba unitaria verificada exige Origin: http://localhost:5173 y el mismo valor en Access-Control-Allow-Origin.
