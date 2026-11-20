@@ -1,0 +1,3 @@
+Evidencia pendiente: ejecutar primero login_malo.json seis veces contra la API activa.
+Debe mostrar cinco respuestas 401 y la sexta 429 con un Retry-After positivo; guardar el valor exacto observado.
+No se escribieron resultados ficticios porque Docker Engine no respondió.

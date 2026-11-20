@@ -10,12 +10,12 @@ de Compose en `18080`; ambos puertos internos coincidieron con `PUERTO`.
 
 | # | Petición | Esperado | Con `go run` | Contenedor independiente | Compose |
 |---|---|---:|---|---:|---:|
-| 1 | `GET /rutinas/{id}` sin token | 401 | No medido en esta verificación | 401 | 401 |
-| 2 | `POST /login` con Ana | 200 | No medido en esta verificación | 200; token recibido, no registrado | 200; token recibido, no registrado |
-| 3 | `GET /rutinas/{id}` con token de Ana | 200 | No medido en esta verificación | 200 | 200 |
-| 4 | `PATCH /rutinas/{id}` a `en_progreso` con token de Luis | 403 | No medido en esta verificación | 403 | 403 |
-| 5 | La misma transición con token de Ana | 200 | No medido en esta verificación | 200; estado `en_progreso` | 200; estado `en_progreso` |
-| 6 | `PATCH /rutinas/{id}` a `pendiente` con token de Ana | 422 `transicion_prohibida` | No medido en esta verificación | 422 `transicion_prohibida` | 422 `transicion_prohibida` |
+| 1 | `GET /rutinas/{id}` sin token | 401 | No medido: `localhost:5432` rechazó la conexión | 401 | 401 |
+| 2 | `POST /login` con Ana | 200 | No medido: `localhost:5432` rechazó la conexión | 200; token recibido, no registrado | 200; token recibido, no registrado |
+| 3 | `GET /rutinas/{id}` con token de Ana | 200 | No medido: `localhost:5432` rechazó la conexión | 200 | 200 |
+| 4 | `PATCH /rutinas/{id}` a `en_progreso` con token de Luis | 403 | No medido: `localhost:5432` rechazó la conexión | 403 | 403 |
+| 5 | La misma transición con token de Ana | 200 | No medido: `localhost:5432` rechazó la conexión | 200; estado `en_progreso` | 200; estado `en_progreso` |
+| 6 | `PATCH /rutinas/{id}` a `pendiente` con token de Ana | 422 `transicion_prohibida` | No medido: `localhost:5432` rechazó la conexión | 422 `transicion_prohibida` | 422 `transicion_prohibida` |
 
 Las peticiones 1–6 se ejecutaron en orden con una rutina nueva en cada entorno.
 Las peticiones auxiliares de preparación (login de Luis, listado de clientes y

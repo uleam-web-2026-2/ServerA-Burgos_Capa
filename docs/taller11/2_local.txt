@@ -1,19 +1,21 @@
-# Prueba de la API en un contenedor independiente
+# Prueba local de conexión a PostgreSQL
 
-- Imagen: `gymcoach-taller11-validation-api:latest`.
-- Configuración: archivo local `.env.docker`, ignorado por Git; no se guardan
-  sus valores en esta evidencia.
-- PostgreSQL: contenedor temporal e independiente en el host, publicado en
-  `15432`; la API se conectó por `host.docker.internal:15432`. Esta base se creó
-  solo para la prueba y no es la base local del equipo.
-- Puerto de la API: `18081`, porque el puerto de host `8080` estaba ocupado.
-- El contenedor inició y registró `escuchando en el puerto 18081`.
-- `GET /login` devolvió HTTP `405`, esperado porque la ruta acepta `POST`.
-- Las seis peticiones del Hito 2 devolvieron `401`, `200`, `200`, `403`, `200`
-  y `422`. La petición 5 dejó `en_progreso`; la petición 6 devolvió
-  `transicion_prohibida`. Ver [peticiones.md](./peticiones.md).
-- Los logs HTTP están en [logs_contenedor.txt](./logs_contenedor.txt); no
-  incluyen tokens ni contraseñas.
+Comando probado:
+`go run .`
 
-La comprobación de inicio sin configuración, incluida la falta de
-`DATABASE_URL`, está en [1_sin_variables.txt](./1_sin_variables.txt).
+Configuración local:
+- `.env` existe y no está versionado ni copiado en esta evidencia.
+- `DATABASE_URL` usa el host `localhost`, el puerto `5432` y la base `gymcoach`.
+- `PUERTO=8080`, `TIEMPO_ESPERA_SEGUNDOS=5`.
+- Docker Desktop no estaba disponible durante esta comprobación.
+
+Resultado real:
+- `localhost:5432` no respondió.
+- IPv6 (`[::1]:5432`) y IPv4 (`127.0.0.1:5432`) rechazaron la conexión.
+- La aplicación terminó con código de salida `1`.
+- No hubo migraciones ni siembra porque GORM no pudo establecer la conexión.
+
+Se comprobó el error `connection refused` correspondiente a una base no
+alcanzable; no se usó la contraseña ni se consultaron datos de ninguna base.
+Para superar esta comprobación debe iniciarse Docker Desktop y `gymcoach-db`,
+usar el puerto publicado por ese contenedor y volver a ejecutar `go run .`.

@@ -13,10 +13,12 @@ import (
 
 // Config es todo lo que el servidor necesita saber del entorno donde corre.
 type Config struct {
-	DatabaseURL  string        // secreto: lleva la contraseña
-	Puerto       string        // configuración: cambia por máquina
-	TiempoEspera time.Duration // configuración: cuánto se espera antes de cortar
-	ClaveFirma   string        // secreto: clave para firmar tokens
+	DatabaseURL         string        // secreto: lleva la contraseña
+	Puerto              string        // configuración: cambia por máquina
+	TiempoEspera        time.Duration // configuración: cuánto se espera antes de cortar
+	ClaveFirma          string        // secreto: clave para firmar tokens
+	EjecutarMigraciones bool
+	MigracionSolo       bool
 }
 
 // Cargar lee .env si existe, después las variables del sistema.
@@ -49,5 +51,7 @@ func Cargar() (Config, error) {
 			"mayor que cero, llegó %q", segundos)
 	}
 	c.TiempoEspera = time.Duration(n) * time.Second
+	c.EjecutarMigraciones = os.Getenv("EJECUTAR_MIGRACIONES") != "0"
+	c.MigracionSolo = os.Getenv("MIGRACION_SOLO") == "1"
 	return c, nil
 }
