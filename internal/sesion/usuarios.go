@@ -26,14 +26,15 @@ type Usuario struct {
 	ClaveHash string `json:"-"`
 }
 
-// Sembrar deja dos usuarios de ejemplo, uno por rol. Corre en cada
-// arranque: si cambian un rol o una contraseña aquí, al reiniciar el
-// servidor el usuario queda actualizado. Son usuarios y contraseñas
-// INVENTADOS, solo para probar: nunca una contraseña real.
+// Sembrar deja usuarios de ejemplo para cada rol y cuentas de cliente que
+// coinciden con los nombres de los perfiles de demostración. Corre en cada
+// arranque: son usuarios y contraseñas INVENTADOS, solo para probar.
 func Sembrar(db *gorm.DB) error {
 	ejemplos := []struct{ nombre, rol, clave string }{
 		{"ana", RolCliente, "ana-2026"},
 		{"luis", RolEntrenador, "luis-2026"},
+		{"Daniela Vera", RolCliente, "daniela-2026"},
+		{"Luis Mera", RolCliente, "luis-cliente-2026"},
 	}
 	for _, e := range ejemplos {
 		// bcrypt calcula el resumen: eso es lo que se guarda.

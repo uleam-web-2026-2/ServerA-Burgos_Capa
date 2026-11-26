@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Avisos de GymCoach · Taller 13</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font: 16px/1.5 system-ui, sans-serif;
+      color: #172033;
+      background: #f3f6fb;
+    }
+
+    body {
+      max-width: 760px;
+      margin: 3rem auto;
+      padding: 0 1.25rem;
+    }
+
+    main {
+      padding: 2rem;
+      border: 1px solid #d6deea;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 12px 32px #17203312;
+    }
+
+    h1 { margin-top: 0; }
+    form { display: grid; gap: 1rem; }
+    label { display: grid; gap: .35rem; font-weight: 600; }
+    input, button {
+      box-sizing: border-box;
+      width: 100%;
+      padding: .7rem .8rem;
+      border: 1px solid #aeb9ca;
+      border-radius: 6px;
+      font: inherit;
+    }
+    button {
+      border: 0;
+      color: white;
+      background: #1858a8;
+      cursor: pointer;
+    }
+    button:disabled { background: #73839a; cursor: wait; }
+    #estado { font-weight: 700; }
+    #avisos { min-height: 7rem; padding-left: 1.25rem; }
+    .nota { color: #526179; font-size: .92rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Avisos de rutinas en tiempo real</h1>
+    <p class="nota">Abre esta página en dos ventanas e inicia sesión con dos clientes distintos.</p>
+    <form id="login">
+      <label>
+        Dirección de GymCoach
+        <input id="api" type="url" value="http://localhost:8080" required>
+      </label>
+      <label>
+        Usuario
+        <input id="usuario" autocomplete="username" required>
+      </label>
+      <label>
+        Clave de prueba
+        <input id="clave" type="password" autocomplete="current-password" required>
+      </label>
+      <button id="conectar" type="submit">Iniciar sesión y conectar</button>
+    </form>
+    <p id="estado" role="status">Desconectado</p>
+    <h2>Avisos recibidos</h2>
+    <ul id="avisos" aria-live="polite"></ul>
+    <p class="nota">Página local de demostración; usa únicamente las cuentas ficticias del proyecto.</p>
+  </main>
+  <script>
+    const form = document.querySelector("#login");
+    const apiInput = document.querySelector("#api");
+    const userInput = document.querySelector("#usuario");
+    const passwordInput = document.querySelector("#clave");
+    const button = document.querySelector("#conectar");
+    const status = document.querySelector("#estado");
+    const notices = document.querySelector("#avisos");
+    let socket;
+
+    function setStatus(message) {
+      status.textContent = message;
+    }
+
+    function showNotice(message) {
+      const item = document.createElement("li");
+      item.textContent = message;
+      notices.prepend(item);
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      button.disabled = true;
+      if (socket) socket.close();
+
+      try {
+        const api = apiInput.value.trim().replace(/\/+$/, "");
+        const response = await fetch(`${api}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            usuario: userInput.value,
+            clave: passwordInput.value
+          })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok || !result.datos || !result.datos.token) {
+          const reason = result.error && result.error.mensaje
+            ? result.error.mensaje
+            : `Error HTTP ${response.status}`;
+          throw new Error(reason);
+        }
+
+        const address = new URL("/ws", api);
+        address.protocol = address.protocol === "https:" ? "wss:" : "ws:";
+        address.searchParams.set("token", result.datos.token);
+        setStatus(`Conectando como ${userInput.value}...`);
+        const connection = new WebSocket(address.toString());
+        socket = connection;
+        connection.addEventListener("open", () => {
+          if (socket !== connection) return;
+          setStatus(`Conectado como ${userInput.value}`);
+        });
+        connection.addEventListener("message", (message) => {
+          if (socket !== connection) return;
+          try {
+            const notice = JSON.parse(message.data);
+            showNotice(`${new Date().toLocaleTimeString()} · ${notice.tipo} · rutina ${notice.id} · ${notice.estado}`);
+          } catch (error) {
+            setStatus(`Aviso no válido: ${error.message}`);
+          }
+        });
+        connection.addEventListener("error", () => {
+          if (socket !== connection) return;
+          setStatus("No se pudo abrir la conexión; revisa la consola y el origen permitido.");
+        });
+        connection.addEventListener("close", (event) => {
+          if (socket !== connection) return;
+          setStatus(`Conexión cerrada (código ${event.code})`);
+        });
+      } catch (error) {
+        setStatus(`Error: ${error.message}`);
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

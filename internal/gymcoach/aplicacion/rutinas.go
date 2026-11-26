@@ -29,12 +29,27 @@ type RepositorioRutinas interface {
 	ActualizarEstado(context.Context, uint, string, string) (int64, error)
 }
 
+type Aviso struct {
+	Tipo   string `json:"tipo"`
+	ID     uint   `json:"id"`
+	Estado string `json:"estado"`
+}
+
+type Avisador interface {
+	Enviar(quien string, aviso Aviso)
+}
+
 type ServicioRutinas struct {
 	repositorio RepositorioRutinas
+	avisador    Avisador
 }
 
 func NuevoServicioRutinas(repositorio RepositorioRutinas) *ServicioRutinas {
 	return &ServicioRutinas{repositorio: repositorio}
+}
+
+func (s *ServicioRutinas) AvisarCon(avisador Avisador) {
+	s.avisador = avisador
 }
 
 func (s *ServicioRutinas) Listar(ctx context.Context, estado string) ([]RutinaSalida, error) {
@@ -84,7 +99,7 @@ func (s *ServicioRutinas) Cambiar(ctx context.Context, id uint, nuevoEstado stri
 		return RutinaSalida{}, ErrEstadoInvalido
 	}
 
-	rutina, err := s.repositorio.ObtenerRutina(ctx, id)
+	rutina, err := s.repositorio.ObtenerRutinaConCliente(ctx, id)
 	if err != nil {
 		return RutinaSalida{}, err
 	}
@@ -98,6 +113,14 @@ func (s *ServicioRutinas) Cambiar(ctx context.Context, id uint, nuevoEstado stri
 	}
 	if filas == 0 {
 		return RutinaSalida{}, dominio.ErrEstadoModificado
+	}
+
+	if s.avisador != nil {
+		s.avisador.Enviar(rutina.Cliente.Nombre, Aviso{
+			Tipo:   "estado_cambiado",
+			ID:     id,
+			Estado: nuevoEstado,
+		})
 	}
 
 	actualizada, err := s.repositorio.ObtenerRutinaConCliente(ctx, id)
