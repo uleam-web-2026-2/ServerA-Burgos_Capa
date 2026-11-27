@@ -157,7 +157,11 @@ func (m *Manejador) crearRutina(w http.ResponseWriter, r *http.Request) {
 		respuesta.Error(w, http.StatusInternalServerError, "servicio_no_configurado", "No se pudo guardar la rutina")
 		return
 	}
-	if rutina, err := m.ServicioRutinas.Crear(r.Context(), entrada); errors.Is(err, dominio.ErrClienteInvalido) {
+	var creadoPor string
+	if s, ok := sesion.De(r); ok {
+		creadoPor = s.Nombre
+	}
+	if rutina, err := m.ServicioRutinas.Crear(r.Context(), entrada, creadoPor); errors.Is(err, dominio.ErrClienteInvalido) {
 		respuesta.Error(w, http.StatusUnprocessableEntity, "cliente_invalido", "El cliente indicado no existe")
 		return
 	} else if err != nil {

@@ -39,9 +39,14 @@ type Avisador interface {
 	Enviar(quien string, aviso Aviso)
 }
 
+type AvisadorCreacion interface {
+	AvisarCreacion(excluir string, aviso Aviso)
+}
+
 type ServicioRutinas struct {
-	repositorio RepositorioRutinas
-	avisador    Avisador
+	repositorio      RepositorioRutinas
+	avisador         Avisador
+	avisadorCreacion AvisadorCreacion
 }
 
 func NuevoServicioRutinas(repositorio RepositorioRutinas) *ServicioRutinas {
@@ -50,6 +55,10 @@ func NuevoServicioRutinas(repositorio RepositorioRutinas) *ServicioRutinas {
 
 func (s *ServicioRutinas) AvisarCon(avisador Avisador) {
 	s.avisador = avisador
+}
+
+func (s *ServicioRutinas) AvisarCreacionCon(avisador AvisadorCreacion) {
+	s.avisadorCreacion = avisador
 }
 
 func (s *ServicioRutinas) Listar(ctx context.Context, estado string) ([]RutinaSalida, error) {
@@ -64,11 +73,18 @@ func (s *ServicioRutinas) Listar(ctx context.Context, estado string) ([]RutinaSa
 	return respuesta, nil
 }
 
-func (s *ServicioRutinas) Crear(ctx context.Context, entrada RutinaEntrada) (RutinaSalida, error) {
+func (s *ServicioRutinas) Crear(ctx context.Context, entrada RutinaEntrada, creadoPor string) (RutinaSalida, error) {
 	rutina := entrada.AModelo()
 	rutina.Estado = "pendiente"
 	if err := s.repositorio.CrearRutina(ctx, &rutina); err != nil {
 		return RutinaSalida{}, err
+	}
+	if s.avisadorCreacion != nil {
+		s.avisadorCreacion.AvisarCreacion(creadoPor, Aviso{
+			Tipo:   "rutina_nueva",
+			ID:     rutina.ID,
+			Estado: rutina.Estado,
+		})
 	}
 	return RutinaSalidaDesdeDominio(rutina), nil
 }

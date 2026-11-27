@@ -1,0 +1,8 @@
+2026-11-26T20:52:48Z GET /ws -> 401 (sin token)
+2026-11-26T20:52:48Z GET /ws?token=<ELIMINADO> -> 403 (origen no autorizado)
+2026-11-26T20:52:52Z GET /ws?token=<ELIMINADO> -> 101 (origen permitido)
+2026-11-26T20:53:58Z POST /login -> 200 (Daniela Vera)
+2026-11-26T20:54:09Z POST /login -> 200 (Luis Mera)
+2026-11-26T20:54:41Z POST /login -> 200 (Daniela Vera)
+2026-11-26T20:54:41Z PATCH /rutinas/1 -> 200 (estado en_progreso)
+Resultado de navegador: Daniela recibió estado_cambiado para rutina 1; Luis no recibió avisos.

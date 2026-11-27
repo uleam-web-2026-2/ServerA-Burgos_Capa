@@ -1,0 +1,4 @@
+=== RUN   TestRetoAvisaAEntrenadoresAlCrearSinAvisarAClienteNiCreador
+--- PASS: TestRetoAvisaAEntrenadoresAlCrearSinAvisarAClienteNiCreador (0.75s)
+PASS
+ok  	github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/gymcoach	1.123s
