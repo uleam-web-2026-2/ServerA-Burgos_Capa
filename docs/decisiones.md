@@ -231,3 +231,32 @@ roles. Si alguien consigue una inyección, aún podría leer, modificar o crear
 registros según los permisos concedidos y consumir secuencias. Las pruebas para
 confirmar esos límites siguen pendientes. El aislamiento no reemplaza
 validación, autorización por propietario ni tratamiento seguro de datos.
+
+## Semana 13 · los avisos en tiempo real
+
+### D1 · Por qué WebSocket y no SSE ni sondeo
+
+- **Qué avisan y en qué sentido:** GymCoach avisa en tiempo real desde el servidor hacia el navegador del cliente dueño cuando cambia el estado de una rutina (`Aviso` con `tipo: "estado_cambiado"`, `id` y `estado` desde `ServicioRutinas.Cambiar` en `internal/gymcoach/aplicacion/rutinas.go`) y hacia las conexiones de entrenadores cuando se crea una rutina nueva (`tipo: "rutina_nueva"` desde `ServicioRutinas.Crear`).
+- **Por qué no basta sondeo ni SSE:** El sondeo periódico (`GET /rutinas/{id}`) retrasa la notificación hasta el siguiente intervalo y genera tráfico repetido sin cambios. Aunque estos avisos son unidireccionales (servidor → cliente), `EventSource` (SSE) está pensado para navegador y no admite fácilmente el mismo transporte en clientes futuros móviles o de escritorio ni reutilizar el canal para mensajes de ida y vuelta; WebSocket cuenta con soporte estándar multiplataforma.
+- **Qué cuesta WebSocket:** Mantener el mapa en memoria `Avisos.canales` protegido con `sync.Mutex` en `internal/gymcoach/avisos.go`, limpiar canales al desconectarse, aislar `/ws` fuera de `middleware.Timeout` en `main.go` usando `conn.CloseRead(context.Background())` para no cortar conexiones inactivas, y validar explícitamente el token en query y `OriginPatterns`.
+
+### D2 · Quién recibe cada aviso
+
+- **Llave del mapa y origen del dueño:** La llave de `Avisos.canales` (`map[string][]*suscripcionAviso` en `internal/gymcoach/avisos.go`) es `s.Nombre` (tomado del JWT en `Conectar`). El dueño de la rutina sale de `Rutina.ClienteID` y la relación `Rutina.Cliente.Nombre` obtenida en `ServicioRutinas.Cambiar` (`internal/gymcoach/aplicacion/rutinas.go`) después de confirmar que `ActualizarEstado` modificó la fila.
+- **Cómo coinciden:** Se mantuvieron las reglas del Hito 2 (el entrenador asigna `cliente_id` al crear en `POST /rutinas`) sin añadir un campo extra ni romper el `403` del entrenador en `PATCH /rutinas/{id}`, y en `internal/sesion/usuarios.go` (`Sembrar`) se agregaron cuentas `RolCliente` (`"Daniela Vera"` y `"Luis Mera"`) con el mismo nombre exacto que los perfiles sembrados en `internal/gymcoach/semilla.go`.
+- **Conexión lenta y dos copias de la API:** Cada suscripción usa un canal con buffer de 8 (`bufferAvisos = 8`) y envío no bloqueante (`select { case sub.ch <- aviso: default: }` en `enviarSinBloquear`): si una conexión está lenta, ese aviso se descarta sin bloquear `Enviar`, al `Mutex` ni a otras conexiones. Si hubiera dos copias de la API detrás de un balanceador, el mapa en memoria no se comparte entre procesos y los avisos quedarían solo en la instancia donde ocurrió la petición HTTP (compartirlos requiere un bus pub/sub externo, fuera de este taller).
+
+### D3 · El token en la dirección
+
+- **Por qué `/ws` va fuera del guardia y el token se revisa antes de `Accept`:** La API `WebSocket` del navegador (`docs/taller13/pagina/index.html`) no permite enviar la cabecera `Authorization: Bearer ...` durante el handshake; si `/ws` pasara por `tokens.Autenticar` (`conSesion`), devolvería siempre `401 sin_token`. Por eso `main.go` registra `r.Get("/ws", avisos.Conectar)` fuera de `conSesion`, y `Conectar` valida `?token=` con `a.tokens.Leer` antes de llamar a `websocket.Accept`, respondiendo `401` (`sin_sesion` o `token_vencido`) sin abrir el socket.
+- **Para qué sirve el origen si ya hay token:** `OriginPatterns: []string{origenFront}` (`http://localhost:5173`, compartido con CORS en `main.go`) impide que un sitio ajeno en el navegador abra un WebSocket hacia la API local (protección contra CSWSH), rechazando con `403`.
+- **Dónde queda el token y qué pasa si vence:** Al viajar en la query (`/ws?token=...`), `middleware.Logger` de `chi` imprime la ruta completa al finalizar `Conectar` (cuando la conexión se cierra), por lo que cualquier log guardado en `docs/taller13/logs_avisos.txt` debe enmascarar el token antes de versionarse. Si el token vence (`Duracion = 1h` en `internal/sesion/tokens.go`) mientras el socket sigue abierto, la conexión continúa viva porque `Leer` solo corre en el handshake; nuevas peticiones HTTP o una reconexión a `/ws` fallarán con `401`.
+
+## Semana 13 · reto: lo nuevo, al negocio
+
+### D4 · Cómo sabe a quién avisar
+
+- **De dónde sale el rol de cada conexión:** De `s.Rol` contenido en el JWT validado por `a.tokens.Leer` durante `Conectar` (`internal/gymcoach/avisos.go`), almacenado en cada `suscripcionAviso` dentro de `Avisos.canales`.
+- **Dónde se decide qué rol se entera y por qué:** Se decide en `Avisos.AvisarCreacion` (`internal/gymcoach/avisos.go`, capa de transporte), filtrando `sub.rol == sesion.RolEntrenador` y `nombre != excluir`. El servicio `ServicioRutinas.Crear` (`internal/gymcoach/aplicacion/rutinas.go`) solo invoca `AvisadorCreacion.AvisarCreacion(creadoPor, Aviso{Tipo: "rutina_nueva", ID: rutina.ID, Estado: rutina.Estado})` después de persistir la rutina, manteniendo la capa de aplicación desacoplada de WebSocket y de los roles del sistema.
+- **Si cambian el rol con la conexión abierta:** Como la API no reconsulta `usuarios` mientras el WebSocket está abierto ni reevalúa el rol en cada evento, la conexión conserva el rol del token con el que abrió el handshake hasta cerrarse o reconectarse con un token nuevo.
+

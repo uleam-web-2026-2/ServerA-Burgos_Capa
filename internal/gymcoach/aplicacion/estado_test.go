@@ -12,6 +12,7 @@ type repositorioEstadoPrueba struct {
 	rutina                dominio.Rutina
 	actualiza             int
 	filasAfectadas        int64
+	errorCrear            error
 	errorActualizar       error
 	forzarConflictoEstado bool
 }
@@ -20,7 +21,11 @@ func (*repositorioEstadoPrueba) ListarRutinas(context.Context, string) ([]domini
 	return nil, nil
 }
 
-func (*repositorioEstadoPrueba) CrearRutina(context.Context, *dominio.Rutina) error {
+func (r *repositorioEstadoPrueba) CrearRutina(_ context.Context, rutina *dominio.Rutina) error {
+	if r.errorCrear != nil {
+		return r.errorCrear
+	}
+	rutina.ID = 77
 	return nil
 }
 
@@ -158,5 +163,56 @@ func TestCambiarEstadoNoAvisaSiFallaLaEscritura(t *testing.T) {
 	}
 	if len(avisador.avisos) != 0 {
 		t.Fatal("un fallo de escritura no debe enviar avisos")
+	}
+}
+
+type avisadorCreacionPrueba struct {
+	excluir string
+	avisos  []Aviso
+}
+
+func (a *avisadorCreacionPrueba) AvisarCreacion(excluir string, aviso Aviso) {
+	a.excluir = excluir
+	a.avisos = append(a.avisos, aviso)
+}
+
+func TestCrearRutinaAvisaCreacionSoloSiSeGuardo(t *testing.T) {
+	entrada := RutinaEntrada{
+		Titulo:      "Fuerza base",
+		Descripcion: "Sesión inicial",
+		DiasSemana:  3,
+		ClienteID:   1,
+	}
+
+	repoFallo := &repositorioEstadoPrueba{errorCrear: dominio.ErrClienteInvalido}
+	servicioFallo := NuevoServicioRutinas(repoFallo)
+	avisadorFallo := &avisadorCreacionPrueba{}
+	servicioFallo.AvisarCreacionCon(avisadorFallo)
+
+	if _, err := servicioFallo.Crear(context.Background(), entrada, "luis"); !errors.Is(err, dominio.ErrClienteInvalido) {
+		t.Fatalf("se esperaba ErrClienteInvalido; llegó %v", err)
+	}
+	if len(avisadorFallo.avisos) != 0 {
+		t.Fatal("un fallo al crear no debe enviar avisos")
+	}
+
+	repoOK := &repositorioEstadoPrueba{}
+	servicioOK := NuevoServicioRutinas(repoOK)
+	avisadorOK := &avisadorCreacionPrueba{}
+	servicioOK.AvisarCreacionCon(avisadorOK)
+
+	creada, err := servicioOK.Crear(context.Background(), entrada, "luis")
+	if err != nil {
+		t.Fatalf("no se esperaba error al crear: %v", err)
+	}
+	if creada.ID != 77 || len(avisadorOK.avisos) != 1 {
+		t.Fatalf("resultado inesperado al crear: id=%d avisos=%d", creada.ID, len(avisadorOK.avisos))
+	}
+	if avisadorOK.excluir != "luis" {
+		t.Fatalf("se esperaba excluir=\"luis\"; llegó %q", avisadorOK.excluir)
+	}
+	aviso := avisadorOK.avisos[0]
+	if aviso.Tipo != "rutina_nueva" || aviso.ID != 77 || aviso.Estado != "pendiente" {
+		t.Fatalf("aviso de creación inesperado: %+v", aviso)
 	}
 }

@@ -21,6 +21,8 @@ import (
 	"github.com/uleam-web-2026-2/ServerA-Burgos_Capa/internal/sesion"
 )
 
+const origenFront = "http://localhost:5173"
+
 func main() {
 	cfg, err := config.Cargar()
 	if err != nil {
@@ -54,17 +56,24 @@ func main() {
 	r.Use(middleware.ClientIPFromRemoteAddr)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	r.Use(middleware.Timeout(cfg.TiempoEspera))
 
 	tokens := sesion.NuevosTokens(cfg.ClaveFirma)
 	login := &sesion.Manejador{DB: db, Tokens: tokens}
-	r.With(limitadorLogin()).Post("/login", login.Login) // pública: limitada a 5 intentos por IP y minuto
 	repositorioRutinas := repositorio.NuevoRutinasSqlc(
 		&repositorio.Rutinas{DB: db},
 		consultassqlc.New(sqlDB),
 	)
 	servicioRutinas := aplicacion.NuevoServicioRutinas(repositorioRutinas)
-	(&gymcoach.Manejador{DB: db, ServicioRutinas: servicioRutinas}).Rutas(r, tokens)
+	avisos := gymcoach.NuevosAvisos(tokens, origenFront)
+	servicioRutinas.AvisarCon(avisos)
+	servicioRutinas.AvisarCreacionCon(avisos)
+
+	r.Group(func(httpRutas chi.Router) {
+		httpRutas.Use(middleware.Timeout(cfg.TiempoEspera))
+		httpRutas.With(limitadorLogin()).Post("/login", login.Login) // pública: limitada a 5 intentos por IP y minuto
+		(&gymcoach.Manejador{DB: db, ServicioRutinas: servicioRutinas}).Rutas(httpRutas, tokens)
+	})
+	r.Get("/ws", avisos.Conectar) // fuera del guardia y del timeout HTTP: el token viaja en la query
 
 	servidor := &http.Server{
 		Addr:         ":" + cfg.Puerto,
@@ -78,7 +87,7 @@ func main() {
 
 func configurarCORS() func(http.Handler) http.Handler {
 	return cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedOrigins:   []string{origenFront},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE"},
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowCredentials: false,

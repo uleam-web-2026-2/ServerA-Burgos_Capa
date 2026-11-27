@@ -59,41 +59,40 @@ reparto registrado en el `README.md`.
 
 ### Punto 2 · ruta WebSocket autenticada
 
-- Implementar el adaptador de transporte de avisos y registrar `/ws` en
-  `main.go`, fuera del middleware de sesión por cabecera.
-- Validar el token de sesión de la query antes de aceptar la conexión; rechazar
-  sin token con 401 y origen no autorizado con 403. El origen debe ser el mismo
-  `http://localhost:5173` de CORS.
-- Mantener canales por usuario con mutex, aceptar varias conexiones por
+- [x] Implementar el adaptador de transporte de avisos (`internal/gymcoach/avisos.go`)
+  y registrar `/ws` en `main.go`, fuera del middleware de sesión por cabecera.
+- [x] Validar el token de sesión de la query antes de aceptar la conexión; rechazar
+  sin token con 401 y origen no autorizado con 403 (`http://localhost:5173`).
+- [x] Mantener canales por usuario con mutex, aceptar varias conexiones por
   usuario y enviar cada aviso solo a la clave destinataria recibida del
-  servicio. No usar broadcast a todos ni confiar en `Origin` como autenticación.
-- Probar desconexión, concurrencia y entrega selectiva; documentar el resultado
-  de `go test` en `prueba_websocket.txt`.
-- Guardar salidas reales de `curl` en `ws_sin_token.txt`,
-  `ws_otro_origen.txt` y `ws_permitido.txt`; completar el commit del punto 2.
+  servicio.
+- [x] Probar desconexión, concurrencia y entrega selectiva; documentar el resultado
+  de `go test` en [`prueba_websocket.txt`](./prueba_websocket.txt).
+- [x] Guardar salidas reales de `curl` en `ws_sin_token.txt`,
+  `ws_otro_origen.txt` y `ws_permitido.txt` con el servidor conectado a PostgreSQL.
 
 ### Punto 3 · navegador y regresión reasignados
 
-- Abrir dos ventanas con dos clientes de prueba; comprobar que el dueño ve el
-  aviso de su rutina y que el otro cliente no lo recibe.
-- Guardar una captura real en `aviso_navegador.png`.
-- Guardar las líneas relevantes del servidor en `logs_avisos.txt` y borrar los
+- [x] Abrir dos ventanas con `"Daniela Vera"` y `"Luis Mera"`; comprobar que el
+  dueño ve el aviso de su rutina y que el otro cliente no lo recibe.
+- [x] Guardar una captura real en `aviso_navegador.png`.
+- [x] Guardar las líneas relevantes del servidor en `logs_avisos.txt` y borrar los
   tokens antes de versionar.
-- Completar la línea base HTTP y repetir las seis peticiones después de
-  integrar WebSocket; registrar las respuestas reales en `peticiones.md`.
-- Escribir D1–D3 en `docs/decisiones.md` y crear el commit del punto 3.
+- [x] Completar la línea base HTTP y repetir las seis peticiones después de
+  integrar WebSocket; registrar las respuestas reales en [`peticiones.md`](./peticiones.md).
+- [x] Escribir D1–D3 en `docs/decisiones.md`.
 
 ### Reto · avisar cuando se crea una rutina
 
-- Diseñar el aviso de rutina nueva sin hacer que el servicio de aplicación
-  conozca WebSocket ni roles.
-- En GymCoach, avisar a las conexiones del rol entrenador cuando se crea una
+- [x] Diseñar el aviso de rutina nueva sin hacer que el servicio de aplicación
+  conozca WebSocket ni roles (`AvisadorCreacion` en `internal/gymcoach/aplicacion/rutinas.go`).
+- [x] En GymCoach, avisar a las conexiones del rol `entrenador` cuando se crea una
   rutina; no avisar a los clientes ni a la persona que la creó. Mantener sin
   cambios los avisos de cambio de estado al cliente dueño.
-- Probar con dos entrenadores conectados y un cliente conectado; registrar la
-  salida en `prueba_reto.txt`.
-- Repetir las seis peticiones, agregar D4 a `docs/decisiones.md` y crear el
-  commit del reto.
+- [x] Probar con entrenadores y cliente conectados; registrar la salida en
+  [`prueba_reto.txt`](./prueba_reto.txt).
+- [x] Repetir las seis peticiones en [`peticiones.md`](./peticiones.md).
+- [x] Agregar D4 a `docs/decisiones.md`.
 
 ## Secuencia de coordinación
 
